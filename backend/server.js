@@ -1,3 +1,5 @@
+import SpotifyAPI from "./SpotifyAPI.js";
+
 const express = require("express");
 require("dotenv").config();
 
@@ -14,9 +16,20 @@ const spotifyAPI = new SpotifyAPI(
 
 app.use(express.json());
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE");
+  next();
+});
+
 app.get("/songs-of-the-day", async function(req, res) {
   const dailySongs = await spotifyAPI.getDailySongs();
-  res.status(200).send(dailySongs);
+  res.status(200).json({ d: dailySongs });
+});
+
+app.post("/vote", async function(req, res) {
+  console.log(req.body);
 });
 
 app.post("/add-song-to-selecion", async function(req, res) {
@@ -36,4 +49,3 @@ async function test() {
   const dailySongs = await spotifyAPI.getDailySongs();
   console.log(dailySongs);
 }
-test();

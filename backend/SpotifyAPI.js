@@ -26,7 +26,8 @@ export default class SpotifyAPI {
       .getPlaylistTracks(this.dailySongsPlaylistID)
       .then(resp => {
         console.log(`Fetched daily tracks`);
-        return resp.body.items;
+        const today = new Date();
+        return resp.body.items.filter(track => new Date(track.added_at).toDateString() === today.toDateString());
       })
       .catch(e => console.log("error while tring to add track to playlist", e));
   }

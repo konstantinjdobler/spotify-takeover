@@ -1,12 +1,19 @@
-import React from 'react';
+import React from "react";
+import SongVote from "./SongVote";
 
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
 
-function App() {
-  return (
-    <div className="App">
-      hgj
-    </div>
-  );
+  render() {
+    return (
+      <div>
+        <SongVote />
+      </div>
+    );
+  }
 }
 
 export default App;
