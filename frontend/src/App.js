@@ -9,7 +9,9 @@ class App extends React.Component {
 
   render() {
     return (
-      <div>
+      <div style={{ padding: "5%" }}>
+        <h1>Pick your favorite songs of today!</h1>
+        <h3>You can distribute 5 points. Choose wisely...</h3>
         <SongVote />
       </div>
     );

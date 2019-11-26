@@ -30,6 +30,8 @@ app.get("/songs-of-the-day", async function(req, res) {
 
 app.post("/vote", async function(req, res) {
   console.log(req.body);
+  const totalVotes = req.body.reduce(count, curr => (count += curr.vote));
+  if (totalVotes > 5) res.status(400).send("Nice try Mot$!#fu#@er");
 });
 
 app.post("/add-song-to-selecion", async function(req, res) {
