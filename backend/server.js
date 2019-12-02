@@ -12,6 +12,7 @@ const isDevelop = process.env.NODE_ENV !== "production";
 const developRedirectUri = "https://mousiki.localtunnel.me/after-spotify-auth";
 
 const spotifyAuthCallback = isDevelop ? developRedirectUri : process.env.REDIRECT_URI;
+const frontendUrl = isDevelop ? "http://localhost:3000" : process.env.FRONTEND_URL;
 
 const spotifyAppUser = new SpotifyAppUserClient(
   process.env.APP_USER_REFRESH_TOKEN,
@@ -116,7 +117,7 @@ app.get("/after-spotify-auth", async function(req, res) {
     issuedToken = votingToken;
     console.log("Sending new votingToken with response", votingToken);
   }
-  res.redirect("http://localhost:3000?votingToken=" + issuedToken);
+  res.redirect(frontendUrl + "?votingToken=" + issuedToken);
 });
 
 app.get("/initial", async function(req, res) {
