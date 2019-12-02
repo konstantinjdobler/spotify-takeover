@@ -12,6 +12,7 @@ export default class SongVote extends React.Component {
       songs: [],
       loading: true,
       votes: {},
+      showAuth: false,
     };
   }
   async getTodaysSongs() {
@@ -19,7 +20,35 @@ export default class SongVote extends React.Component {
     const jsonResponse = await response.json();
     return jsonResponse.d;
   }
+
+  async initial() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const votingToken = urlParams.get("votingToken");
+    if (votingToken) {
+      document.cookie = "votingToken=" + votingToken;
+      var uri = window.location.toString();
+      if (uri.indexOf("?") > 0) {
+        var clean_uri = uri.substring(0, uri.indexOf("?"));
+        window.history.replaceState({}, document.title, clean_uri);
+      }
+    }
+    const response = await fetch(`${API_URL}/initial`, {
+      method: "GET",
+      credentials: "include",
+      redirect: "follow",
+    });
+
+    const jsonResponse = await response.json();
+    console.log(jsonResponse);
+
+    if (jsonResponse.authRequired) {
+      this.setState({ showAuth: jsonResponse.authRequired });
+    } else {
+      this.setState({ showAuth: false });
+    }
+  }
   async componentDidMount() {
+    await this.initial();
     const todaysSongs = await this.getTodaysSongs();
     this.setState({ songs: todaysSongs, loading: false });
 
@@ -70,14 +99,18 @@ export default class SongVote extends React.Component {
     console.log(votesToSend);
     fetch(`${API_URL}/vote`, {
       method: "POST",
+      credentials: "include",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(votesToSend),
+      body: JSON.stringify({ votes: votesToSend }),
     });
   };
   render() {
+    if (this.state.showAuth) {
+      return <a href={this.state.showAuth}> Click here for Authentication </a>;
+    }
     if (this.state.loading)
       return <div style={{ marginTop: "2%", marginBottom: "2%" }}>{this.getLoadingSkeleton()}</div>;
     else

@@ -1,28 +1,24 @@
 const SpotifyWebApi = require("spotify-web-api-node");
 
-export default class SpotifyAPI {
+export default class SpotifyAppUserClient {
   constructor(refreshToken, clientId, clientSecret, redirectUri, dailySongsPlaylistID, seleçionPlaylistID) {
-    this.refreshToken = refreshToken;
-    this.clientId = clientId;
-    this.clientSecret = clientSecret;
-    this.redirectUri = redirectUri;
     this.dailySongsPlaylistID = dailySongsPlaylistID;
     this.seleçionPlaylistID = seleçionPlaylistID;
-    this.api = new SpotifyWebApi({ clientId, clientSecret, refreshToken });
-    this.api.setRefreshToken(refreshToken);
+    this.engine = new SpotifyWebApi({ clientId, clientSecret, redirectUri });
+    this.engine.setRefreshToken(refreshToken);
   }
   get accessToken() {
-    return this.api.getAccessToken();
+    return this.engine.getAccessToken();
   }
   async refreshAccessToken() {
-    await this.api
+    await this.engine
       .refreshAccessToken()
-      .then(result => this.api.setAccessToken(result.body.access_token))
+      .then(result => this.engine.setAccessToken(result.body.access_token))
       .catch(e => console.log("Error while refreshing acess token", e));
   }
   async getDailySongs() {
     await this.refreshAccessToken();
-    return this.api
+    return this.engine
       .getPlaylistTracks(this.dailySongsPlaylistID)
       .then(resp => {
         console.log(`Fetched daily tracks`);
@@ -33,9 +29,39 @@ export default class SpotifyAPI {
   }
   async addSongToPlaylist(trackURI, playlistID = this.seleçionPlaylistID) {
     await this.refreshAccessToken();
-    this.api
+    this.engine
       .addTracksToPlaylist(playlistID, [trackURI])
       .then(resp => console.log(`Added track ${trackURI} to playlist ${playlistID}`))
       .catch(e => console.log("error while tring to add track to playlist", e));
+  }
+}
+
+export class SpotifyUserAuth {
+  static authDict = {};
+  static init(clientId, clientSecret, redirectUri) {
+    this.engine = new SpotifyWebApi({
+      clientId,
+      clientSecret,
+      redirectUri,
+    });
+  }
+  static getAuthorizeURL() {
+    return this.engine.createAuthorizeURL(["user-read-email"], "nicerstate", true);
+  }
+
+  static async getUserInfo(userRefreshToken) {
+    await this.authorizeRequest(userRefreshToken);
+
+    const userInfo = await this.engine.getMe().catch(error => console.log(error));
+    return userInfo.body;
+  }
+  static async authorizeRequest(refreshToken) {
+    this.engine.setRefreshToken(refreshToken);
+    await this.engine
+      .refreshAccessToken()
+      .then(result => {
+        this.engine.setAccessToken(result.body.access_token);
+      })
+      .catch(e => console.log("Error while refreshing acess token", e));
   }
 }
