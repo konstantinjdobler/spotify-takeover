@@ -9,7 +9,7 @@ require("dotenv").config();
 const app = express();
 const SECRET = process.env.SECRET;
 const isDevelop = process.env.NODE_ENV !== "production";
-const developRedirectUri = "https://mousiki.localtunnel.me/after-spotify-auth";
+const developRedirectUri = "https://mousiki1234.localtunnel.me/after-spotify-auth";
 
 const spotifyAuthCallback = isDevelop ? developRedirectUri : process.env.REDIRECT_URI;
 const frontendUrl = isDevelop ? "http://localhost:3000" : process.env.FRONTEND_URL;

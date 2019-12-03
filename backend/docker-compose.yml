@@ -1,0 +1,8 @@
+version: "3.7"
+
+services:
+  backend:
+    container_name: song-vote-api
+    build: .
+    ports:
+      - 42069:42069
