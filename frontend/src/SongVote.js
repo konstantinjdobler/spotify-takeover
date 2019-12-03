@@ -2,7 +2,8 @@ import React from "react";
 import { List, Button, Rate, Icon, Skeleton, message } from "antd";
 import Song from "./Song";
 
-const API_URL = process.env.NODE_ENV === "development" ? "http://localhost:42069" : process.env.REACT_APP_API_URL;
+//const API_URL = process.env.NODE_ENV === "production" ? "http://localhost:42069" : process.env.REACT_APP_API_URL;
+const API_URL = "https://api.vote.konstantin-dobler.de"
 console.log(API_URL);
 
 export default class SongVote extends React.Component {
@@ -25,7 +26,7 @@ export default class SongVote extends React.Component {
     const urlParams = new URLSearchParams(window.location.search);
     const votingToken = urlParams.get("votingToken");
     if (votingToken) {
-      document.cookie = "votingToken=" + votingToken;
+      document.cookie = `votingToken=${votingToken};path=/;domain=vote.konstantin-dobler.de`
       var uri = window.location.toString();
       if (uri.indexOf("?") > 0) {
         var clean_uri = uri.substring(0, uri.indexOf("?"));
@@ -130,8 +131,8 @@ export default class SongVote extends React.Component {
           {this.state.songs.length > 0 ? (
             <Button onClick={this.saveVote}>Save my choice</Button>
           ) : (
-            "Nobody seems to have added a song today. Be the first one and win a secret prize!"
-          )}
+              "Nobody seems to have added a song today. Be the first one and win a secret prize!"
+            )}
         </div>
       );
   }

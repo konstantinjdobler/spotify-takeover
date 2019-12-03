@@ -9,6 +9,7 @@ require("dotenv").config();
 const app = express();
 const SECRET = process.env.SECRET;
 const isDevelop = process.env.NODE_ENV !== "production";
+console.log("Starting in development mode: (true | false)", isDevelop)
 const developRedirectUri = "https://mousiki1234.localtunnel.me/after-spotify-auth";
 
 const spotifyAuthCallback = isDevelop ? developRedirectUri : process.env.REDIRECT_URI;
@@ -59,15 +60,20 @@ app.use(cookieParser());
 
 const corsOptions = isDevelop
   ? {
-      origin: "http://localhost:3000",
-      credentials: true,
-      methods: ["GET", "POST"],
-      allowedheaders: ["Cookie"],
-    }
-  : undefined;
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST"],
+    allowedheaders: ["Cookie"],
+  }
+  : {
+    origin: "https://vote.konstantin-dobler.de",
+    credentials: true,
+    methods: ["GET", "POST"],
+    allowedheaders: ["Cookie"],
+  };
 app.use(cors(corsOptions));
 
-app.get("/songs-of-the-day", async function(req, res) {
+app.get("/songs-of-the-day", async function (req, res) {
   try {
     const dailySongs = await spotifyAppUser.getDailySongs();
     res.status(200).json({ d: dailySongs });
@@ -77,7 +83,7 @@ app.get("/songs-of-the-day", async function(req, res) {
   }
 });
 
-app.post("/vote", async function(req, res) {
+app.post("/vote", async function (req, res) {
   console.log(req.body);
   const votingToken = req.cookies.votingToken;
   if (!Persistence.votingTokens[votingToken]) {
@@ -97,7 +103,7 @@ app.post("/vote", async function(req, res) {
   console.log("Current vote status", Persistence.votes[today]);
 });
 
-app.get("/after-spotify-auth", async function(req, res) {
+app.get("/after-spotify-auth", async function (req, res) {
   const code = req.query.code;
   console.log("Retrieved authorization code from spotify: ", code);
   const refreshToken = (await getRefreshToken(code)).refresh_token;
@@ -120,7 +126,7 @@ app.get("/after-spotify-auth", async function(req, res) {
   res.redirect(frontendUrl + "?votingToken=" + issuedToken);
 });
 
-app.get("/initial", async function(req, res) {
+app.get("/initial", async function (req, res) {
   console.log(Persistence.votingTokens);
   const cookieVotingToken = req.cookies.votingToken;
   if (cookieVotingToken && Persistence.votingTokens[cookieVotingToken]) {
@@ -141,7 +147,7 @@ app.get("/initial", async function(req, res) {
   }
 });
 
-app.post("/add-song-to-selecion", async function(req, res) {
+app.post("/add-song-to-selecion", async function (req, res) {
   try {
     const trackURI = req.body.trackURI;
     const providedSecret = req.body.secret;

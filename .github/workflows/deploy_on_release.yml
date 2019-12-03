@@ -1,0 +1,47 @@
+name: Deploy To Personal Server
+
+on:
+  push:
+    branches: master
+
+jobs:
+  deploy:
+    name: Deploy To Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.PERSONAL_SERVER_HOST }}
+          username: ${{ secrets.PERSONAL_SERVER_USER }}
+          password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
+          timeout: 10m
+          command_timeout: 5m
+          script: |
+
+            echo "Shutting down server"
+            cd ~/projects/daily-song-vote/backend
+            docker-compose down
+
+            echo "Checking out commit with SHA: ${{github.sha}}"
+            cd ~/projects/daily-song-vote
+            git fetch
+            git checkout -f ${{github.sha}}
+
+            echo "Updating frontend"
+            cd frontend
+            echo "Updating frontend dependencies"
+            npm install
+            echo "Running frontend build"
+            npm run build
+
+            echo "Updating backend"
+            cd ../backend
+            echo "Updating backend dependencies"
+            npm install
+            echo "Building server"
+            docker-compose up --build --detach
+
+
+            echo "Reloading nginx"
+            sudo nginx -s reload
