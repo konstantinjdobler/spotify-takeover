@@ -40,7 +40,7 @@ jobs:
             echo "Updating backend dependencies"
             npm install
             echo "Building server"
-            docker-compose up --build --detach
+            docker-compose up -d --build 
 
 
             echo "Reloading nginx"

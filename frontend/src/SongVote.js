@@ -1,9 +1,9 @@
 import React from "react";
 import { List, Button, Rate, Icon, Skeleton, message } from "antd";
 import Song from "./Song";
-const isProd = process.env.React_APP_IS_PRODUCTION === "true";
-const API_URL = isProd ? process.env.REACT_APP_API_URL : "http://localhost:42069";
-console.log(API_URL);
+const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
+const API_URL = isProd ? process.env.REACT_APP_API_URL : process.env.REACT_APP_API_URL_DEV;
+console.log(API_URL, isProd);
 
 export default class SongVote extends React.Component {
   constructor(props) {
@@ -72,7 +72,7 @@ export default class SongVote extends React.Component {
   }
 
   onVote = (newValue, trackURI) => {
-    if (this.getTotalVotesCast() + newValue > 5) {
+    if (this.getTotalVotesCast() - this.state.votes[trackURI] + newValue > 5) {
       message.info("You can only distribute up to 5 points");
       this.state.votes[trackURI] = 5 - this.getTotalVotesCast();
     } else this.state.votes[trackURI] = newValue;

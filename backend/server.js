@@ -87,7 +87,8 @@ app.get("/songs-of-the-day", async function(req, res) {
 app.post("/vote", async function(req, res) {
   console.log(req.body);
   const votingToken = req.cookies.votingToken;
-  if (!Persistence.checkVotingToken(votingToken)) {
+
+  if (!(await Persistence.checkVotingToken(votingToken))) {
     res.status(401).send({ error: "Unauthorized" });
     return;
   }
@@ -97,7 +98,8 @@ app.post("/vote", async function(req, res) {
     res.status(400).send("Nice try Mot$!#fu#@er");
     return;
   }
-  Persistence.addVote(votingToken, req.body.votes);
+  await Persistence.addVote(votingToken, req.body.votes);
+  res.status(201).send({ ok: "created" });
   console.log("added vote");
 });
 
@@ -109,7 +111,7 @@ app.get("/after-spotify-auth", async function(req, res) {
   const userInfo = await SpotifyUserAuth.getUserInfo(refreshToken);
   console.log(userInfo);
   const votingToken = makeID(10);
-  Persistence.addVotingToken(votingToken, userInfo, refreshToken);
+  await Persistence.addVotingToken(votingToken, userInfo, refreshToken);
   console.log("Sending new votingToken with response", votingToken);
 
   res.redirect(frontendUrl + "?votingToken=" + votingToken);
@@ -123,7 +125,6 @@ app.get("/initial", async function(req, res) {
     res.status(200).json({ ok: "ok" });
   } else if (cookieVotingToken && !validVotingToken) {
     console.log("auth token invalid", cookieVotingToken);
-    // res.status(401).json({ error: "Boi boi boi, you made a mistake. dont ever try to edit these cookies again" });
     const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
     console.log("Spotify Auth url: ", spotifyAuthUrl);
     res.status(200).json({ authRequired: spotifyAuthUrl });
