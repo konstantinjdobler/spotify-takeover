@@ -26,7 +26,7 @@ export default class SongVote extends React.Component {
     const votingToken = urlParams.get("votingToken");
     if (votingToken) {
       console.log(votingToken);
-      const domain = isProd ? "vote.konstantin-dobler.de" : "localhost";
+      const domain = isProd ? "konstantin-dobler.de" : "localhost";
       document.cookie = `votingToken=${votingToken};path=/;domain=${domain}`;
       var uri = window.location.toString();
       if (uri.indexOf("?") > 0) {

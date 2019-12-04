@@ -41,7 +41,7 @@ class PersistenceClass {
     const result = await db
       .collection("users")
       .replaceOne(
-        { userInfo: { id: userInfo.id } },
+        { "user.id": userInfo.id },
         { votingToken: votingToken, user: userInfo, refreshToken: refreshToken },
         { upsert: true },
       );
