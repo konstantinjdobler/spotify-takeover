@@ -21,22 +21,22 @@ class PersistenceClass {
     vote.votingDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
     vote.user = user.user.id;
     vote.votes = votes;
-    console.log("Inserting vote:", vote);
     const result = await db
       .collection("votes")
       .replaceOne({ user: vote.user, votingDate: vote.votingDate }, vote, { upsert: true });
 
-    console.log("addVote result:", result.result);
+    if (result.result.nModified)
+      console.log("Overwrote old vote from user:" + vote.user + ". MongoDB result:", result.result.ok);
+    else console.log("Added new vote for user:" + vote.user + ". MongoDB result:", result.result.ok);
   }
 
   async checkVotingToken(votingToken) {
     const db = await this.connectToDB();
     const result = await db.collection("users").findOne({ votingToken: votingToken });
-    console.log("checkVotingToken result:", result);
-    return result;
+    return !!result;
   }
 
-  async addVotingToken(votingToken, userInfo, refreshToken) {
+  async addUser(votingToken, userInfo, refreshToken) {
     const db = await this.connectToDB();
     const result = await db
       .collection("users")
@@ -45,7 +45,9 @@ class PersistenceClass {
         { votingToken: votingToken, user: userInfo, refreshToken: refreshToken },
         { upsert: true },
       );
-    console.log("addVotingToken result:", result.result);
+    if (result.result.nModified)
+      console.log("Overwrote existing user " + userInfo.id + ". MongoDB result:", result.result.ok);
+    else console.log("Added new user " + userInfo.id + ". MongoDB result:", result.result.ok);
   }
   async getVotesFromToday() {
     const today = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });

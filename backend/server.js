@@ -90,18 +90,19 @@ app.post("/vote", async function(req, res) {
   const votingToken = req.cookies.votingToken;
 
   if (!(await Persistence.checkVotingToken(votingToken))) {
+    console.log("Unauthorized voting attempt, votingToken:", votingToken);
     res.status(401).send({ error: "Unauthorized" });
     return;
   }
 
   const totalVotes = req.body.votes.reduce((count, curr) => (count += curr.vote), 0);
   if (totalVotes > 5) {
+    console.log("Voting attempt with more than 5 points, votingToken:", votingToken);
     res.status(400).send("Nice try Mot$!#fu#@er");
     return;
   }
   await Persistence.addVote(votingToken, req.body.votes);
   res.status(201).send({ ok: "created" });
-  console.log("added vote");
 });
 
 app.get("/after-spotify-auth", async function(req, res) {
@@ -110,14 +111,13 @@ app.get("/after-spotify-auth", async function(req, res) {
   const refreshToken = (await getRefreshToken(code)).refresh_token;
   console.log("Retrieved refresh token from spotify: ", refreshToken);
   const userInfo = await SpotifyUserAuth.getUserInfo(refreshToken);
-  console.log(userInfo);
   if (!spotifyUserWhitelist.includes(userInfo.id)) {
-    res.status(401).send({ error: "Unauthorized suer, sucker" });
+    console.log("Unauthorized user attempted to login", userInfo);
+    res.status(401).send({ error: "Unauthorized user, sucker" });
   }
   const votingToken = makeID(10);
-  await Persistence.addVotingToken(votingToken, userInfo, refreshToken);
+  await Persistence.addUser(votingToken, userInfo, refreshToken);
   console.log("Sending new votingToken with response", votingToken);
-
   res.redirect(frontendUrl + "?votingToken=" + votingToken);
 });
 
@@ -128,16 +128,15 @@ app.get("/initial", async function(req, res) {
     console.log("User authenticated", cookieVotingToken);
     res.status(200).json({ ok: "ok" });
   } else if (cookieVotingToken && !validVotingToken) {
-    console.log("auth token invalid", cookieVotingToken);
+    console.log("Initial Request with invalid votingToken, sending authentication link", cookieVotingToken);
     const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
     console.log("Spotify Auth url: ", spotifyAuthUrl);
     res.status(200).json({ authRequired: spotifyAuthUrl });
   } else {
+    console.log("Initial request without votingToken, sending authentication link");
     const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
     console.log("Spotify Auth url: ", spotifyAuthUrl);
-
     res.status(200).json({ authRequired: spotifyAuthUrl });
-    console.log("Initiating user authentication");
   }
 });
 
