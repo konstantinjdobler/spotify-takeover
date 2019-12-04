@@ -17,6 +17,7 @@ const developRedirectUri = "https://mousiki1234.localtunnel.me/after-spotify-aut
 const spotifyAuthCallback = isDevelop ? developRedirectUri : process.env.REDIRECT_URI;
 const frontendUrl = isDevelop ? "http://localhost:3000" : process.env.FRONTEND_URL;
 
+const spotifyUserWhitelist = process.env.SPOTIFY_USER_WHITELIST.split(",");
 const spotifyAppUser = new SpotifyAppUserClient(
   process.env.APP_USER_REFRESH_TOKEN,
   process.env.CLIENT_ID,
@@ -110,6 +111,9 @@ app.get("/after-spotify-auth", async function(req, res) {
   console.log("Retrieved refresh token from spotify: ", refreshToken);
   const userInfo = await SpotifyUserAuth.getUserInfo(refreshToken);
   console.log(userInfo);
+  if (!spotifyUserWhitelist.includes(userInfo.id)) {
+    res.status(401).send({ error: "Unauthorized suer, sucker" });
+  }
   const votingToken = makeID(10);
   await Persistence.addVotingToken(votingToken, userInfo, refreshToken);
   console.log("Sending new votingToken with response", votingToken);
