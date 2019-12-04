@@ -1,11 +1,9 @@
 const SpotifyWebApi = require("spotify-web-api-node");
 
 function isToday(utcDate) {
-
-  const today = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" })
-  const shiftedUTCDate = utcDate.toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" })
-  return shiftedUTCDate === today
-
+  const today = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+  const shiftedUTCDate = utcDate.toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+  return shiftedUTCDate === today;
 }
 export default class SpotifyAppUserClient {
   constructor(refreshToken, clientId, clientSecret, redirectUri, dailySongsPlaylistID, seleçionPlaylistID) {
@@ -28,10 +26,8 @@ export default class SpotifyAppUserClient {
     return this.engine
       .getPlaylistTracks(this.dailySongsPlaylistID)
       .then(resp => {
-        console.log(`Fetched daily tracks`);
-        const today = new Date();
         return resp.body.items.filter(track => {
-          return isToday(new Date(track.added_at))
+          return isToday(new Date(track.added_at));
         });
       })
       .catch(e => console.log("error while tring to add track to playlist", e));

@@ -1,9 +1,8 @@
 import React from "react";
 import { List, Button, Rate, Icon, Skeleton, message } from "antd";
 import Song from "./Song";
-
-//const API_URL = process.env.NODE_ENV === "production" ? "http://localhost:42069" : process.env.REACT_APP_API_URL;
-const API_URL = "https://api.vote.konstantin-dobler.de"
+const isProd = process.env.React_APP_IS_PRODUCTION === "true";
+const API_URL = isProd ? process.env.REACT_APP_API_URL : "http://localhost:42069";
 console.log(API_URL);
 
 export default class SongVote extends React.Component {
@@ -26,7 +25,9 @@ export default class SongVote extends React.Component {
     const urlParams = new URLSearchParams(window.location.search);
     const votingToken = urlParams.get("votingToken");
     if (votingToken) {
-      document.cookie = `votingToken=${votingToken};path=/;domain=vote.konstantin-dobler.de`
+      console.log(votingToken);
+      const domain = isProd ? "vote.konstantin-dobler.de" : "localhost";
+      document.cookie = `votingToken=${votingToken};path=/;domain=${domain}`;
       var uri = window.location.toString();
       if (uri.indexOf("?") > 0) {
         var clean_uri = uri.substring(0, uri.indexOf("?"));
@@ -50,6 +51,7 @@ export default class SongVote extends React.Component {
   }
   async componentDidMount() {
     await this.initial();
+    if (this.state.showAuth) return;
     const todaysSongs = await this.getTodaysSongs();
     this.setState({ songs: todaysSongs, loading: false });
 
@@ -94,7 +96,7 @@ export default class SongVote extends React.Component {
     for (const trackURI of Object.keys(this.state.votes)) {
       const vote = this.state.votes[trackURI];
       if (vote > 0) {
-        votesToSend.push({ trackURI, vote, user: "default" });
+        votesToSend.push({ trackURI, vote });
       }
     }
     console.log(votesToSend);
@@ -131,8 +133,8 @@ export default class SongVote extends React.Component {
           {this.state.songs.length > 0 ? (
             <Button onClick={this.saveVote}>Save my choice</Button>
           ) : (
-              "Nobody seems to have added a song today. Be the first one and win a secret prize!"
-            )}
+            "Nobody seems to have added a song today. Be the first one and win a secret prize!"
+          )}
         </div>
       );
   }

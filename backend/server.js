@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import SpotifyAppUserClient, { SpotifyUserAuth } from "./SpotifyAPI.js";
 import Persistence from "./Persistence";
 const express = require("express");
@@ -9,7 +10,7 @@ require("dotenv").config();
 const app = express();
 const SECRET = process.env.SECRET;
 const isDevelop = process.env.NODE_ENV !== "production";
-console.log("Starting in development mode: (true | false)", isDevelop)
+console.log("Starting in development mode: (true | false)", isDevelop);
 const developRedirectUri = "https://mousiki1234.localtunnel.me/after-spotify-auth";
 
 const spotifyAuthCallback = isDevelop ? developRedirectUri : process.env.REDIRECT_URI;
@@ -47,10 +48,10 @@ async function getRefreshToken(code) {
 }
 
 function makeID(length) {
-  var result = "";
-  var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  var charactersLength = characters.length;
-  for (var i = 0; i < length; i++) {
+  let result = "";
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
@@ -60,20 +61,20 @@ app.use(cookieParser());
 
 const corsOptions = isDevelop
   ? {
-    origin: "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST"],
-    allowedheaders: ["Cookie"],
-  }
+      origin: "http://localhost:3000",
+      credentials: true,
+      methods: ["GET", "POST"],
+      allowedheaders: ["Cookie"],
+    }
   : {
-    origin: "https://vote.konstantin-dobler.de",
-    credentials: true,
-    methods: ["GET", "POST"],
-    allowedheaders: ["Cookie"],
-  };
+      origin: "https://vote.konstantin-dobler.de",
+      credentials: true,
+      methods: ["GET", "POST"],
+      allowedheaders: ["Cookie"],
+    };
 app.use(cors(corsOptions));
 
-app.get("/songs-of-the-day", async function (req, res) {
+app.get("/songs-of-the-day", async function(req, res) {
   try {
     const dailySongs = await spotifyAppUser.getDailySongs();
     res.status(200).json({ d: dailySongs });
@@ -83,10 +84,10 @@ app.get("/songs-of-the-day", async function (req, res) {
   }
 });
 
-app.post("/vote", async function (req, res) {
+app.post("/vote", async function(req, res) {
   console.log(req.body);
   const votingToken = req.cookies.votingToken;
-  if (!Persistence.votingTokens[votingToken]) {
+  if (!Persistence.checkVotingToken(votingToken)) {
     res.status(401).send({ error: "Unauthorized" });
     return;
   }
@@ -96,45 +97,33 @@ app.post("/vote", async function (req, res) {
     res.status(400).send("Nice try Mot$!#fu#@er");
     return;
   }
-  const today = new Date().toDateString();
-  const voterID = Persistence.votingTokens[votingToken].user.id;
-  if (!Persistence.votes[today]) Persistence.votes[today] = {};
-  Persistence.votes[today][voterID] = req.body.votes;
-  console.log("Current vote status", Persistence.votes[today]);
+  Persistence.addVote(votingToken, req.body.votes);
+  console.log("added vote");
 });
 
-app.get("/after-spotify-auth", async function (req, res) {
+app.get("/after-spotify-auth", async function(req, res) {
   const code = req.query.code;
   console.log("Retrieved authorization code from spotify: ", code);
   const refreshToken = (await getRefreshToken(code)).refresh_token;
   console.log("Retrieved refresh token from spotify: ", refreshToken);
   const userInfo = await SpotifyUserAuth.getUserInfo(refreshToken);
   console.log(userInfo);
-  const existingToken = Persistence.userHasStaleToken(userInfo.id);
-  let issuedToken;
-  if (existingToken) {
-    //res.cookie("votingToken", existingToken, { overwrite: true });
-    console.log("Sending old votingToken with response", existingToken);
-    issuedToken = existingToken;
-  } else {
-    console.log(Persistence.votingTokens);
-    const votingToken = makeID(10);
-    Persistence.votingTokens[votingToken] = { user: userInfo, refreshToken };
-    issuedToken = votingToken;
-    console.log("Sending new votingToken with response", votingToken);
-  }
-  res.redirect(frontendUrl + "?votingToken=" + issuedToken);
+  const votingToken = makeID(10);
+  Persistence.addVotingToken(votingToken, userInfo, refreshToken);
+  console.log("Sending new votingToken with response", votingToken);
+
+  res.redirect(frontendUrl + "?votingToken=" + votingToken);
 });
 
-app.get("/initial", async function (req, res) {
-  console.log(Persistence.votingTokens);
+app.get("/initial", async function(req, res) {
   const cookieVotingToken = req.cookies.votingToken;
-  if (cookieVotingToken && Persistence.votingTokens[cookieVotingToken]) {
+  const validVotingToken = await Persistence.checkVotingToken(cookieVotingToken);
+  if (cookieVotingToken && validVotingToken) {
     console.log("User authenticated", cookieVotingToken);
     res.status(200).json({ ok: "ok" });
-  } else if (cookieVotingToken && !Persistence.votingTokens[cookieVotingToken]) {
+  } else if (cookieVotingToken && !validVotingToken) {
     console.log("auth token invalid", cookieVotingToken);
-    //res.status(401).json({ error: "Boi boi boi, you made a mistake. dont ever try to edit these cookies again" });
+    // res.status(401).json({ error: "Boi boi boi, you made a mistake. dont ever try to edit these cookies again" });
     const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
     console.log("Spotify Auth url: ", spotifyAuthUrl);
     res.status(200).json({ authRequired: spotifyAuthUrl });
@@ -147,7 +136,7 @@ app.get("/initial", async function (req, res) {
   }
 });
 
-app.post("/add-song-to-selecion", async function (req, res) {
+app.post("/add-song-to-selecion", async function(req, res) {
   try {
     const trackURI = req.body.trackURI;
     const providedSecret = req.body.secret;
