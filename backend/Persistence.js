@@ -47,6 +47,12 @@ class PersistenceClass {
       );
     console.log("addVotingToken result:", result.result);
   }
+  async getVotesFromToday() {
+    const today = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
+    const db = await this.connectToDB();
+    const result = await db.collection("votes").find({ votingDate: today });
+    return result;
+  }
 }
 
 const exportPersistence = new PersistenceClass();

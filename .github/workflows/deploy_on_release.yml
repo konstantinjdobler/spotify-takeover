@@ -16,7 +16,7 @@ jobs:
           username: ${{ secrets.PERSONAL_SERVER_USER }}
           password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
           timeout: 10m
-          command_timeout: 5m
+          command_timeout: 15m
           script: |
 
             echo "Shutting down server"

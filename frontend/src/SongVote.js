@@ -72,16 +72,17 @@ export default class SongVote extends React.Component {
   }
 
   onVote = (newValue, trackURI) => {
-    if (this.getTotalVotesCast() - this.state.votes[trackURI] + newValue > 5) {
+    if (this.getTotalVotesCast(trackURI) + newValue > 5) {
       message.info("You can only distribute up to 5 points");
-      this.state.votes[trackURI] = 5 - this.getTotalVotesCast();
+      this.state.votes[trackURI] = 5 - this.getTotalVotesCast(trackURI);
     } else this.state.votes[trackURI] = newValue;
     this.forceUpdate();
   };
 
-  getTotalVotesCast() {
+  getTotalVotesCast(excludeTrackURI = null) {
     let totalVotes = 0;
     for (const key of Object.keys(this.state.votes)) {
+      if (key === excludeTrackURI) continue;
       totalVotes += this.state.votes[key];
     }
     return totalVotes;

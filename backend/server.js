@@ -1,12 +1,13 @@
 /* eslint-disable require-jsdoc */
 import SpotifyAppUserClient, { SpotifyUserAuth } from "./SpotifyAPI.js";
 import Persistence from "./Persistence";
+import { schduleCron } from "./cronjob";
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 require("dotenv").config();
-
+schduleCron();
 const app = express();
 const SECRET = process.env.SECRET;
 const isDevelop = process.env.NODE_ENV !== "production";
