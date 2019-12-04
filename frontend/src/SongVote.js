@@ -1,5 +1,5 @@
 import React from "react";
-import { List, Button, Rate, Icon, Skeleton, message } from "antd";
+import { List, Button, Result, Rate, Icon, Skeleton, message } from "antd";
 import Song from "./Song";
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
 const API_URL = isProd ? process.env.REACT_APP_API_URL : process.env.REACT_APP_API_URL_DEV;
@@ -91,7 +91,7 @@ export default class SongVote extends React.Component {
     return [1, 2, 3, 4, 5, 6, 7].map(key => <Skeleton key={key} title={false} loading paragraph={{ rows: 1 }} />);
   }
 
-  saveVote = () => {
+  saveVote = async () => {
     const votesToSend = [];
     for (const trackURI of Object.keys(this.state.votes)) {
       const vote = this.state.votes[trackURI];
@@ -100,7 +100,7 @@ export default class SongVote extends React.Component {
       }
     }
     console.log(votesToSend);
-    fetch(`${API_URL}/vote`, {
+    const result = await fetch(`${API_URL}/vote`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -109,8 +109,24 @@ export default class SongVote extends React.Component {
       },
       body: JSON.stringify({ votes: votesToSend }),
     });
+    const body = await result.json();
+    if (body.ok === "created") this.setState({ voted: true });
   };
+
+  votedPage = () => (
+    <Result
+      status="success"
+      title="You have successfully cast your vote!"
+      subTitle="Congratulations, with a bit of luck and knowledge of advanced game theory, your song might make it into the seleçion."
+      extra={[
+        <Button onClick={() => this.setState({ voted: false })} type="primary">
+          I changed my mind
+        </Button>,
+      ]}
+    />
+  );
   render() {
+    if (this.state.voted) return this.votedPage();
     if (this.state.showAuth) {
       return <a href={this.state.showAuth}> Click here for Authentication </a>;
     }

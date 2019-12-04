@@ -85,7 +85,6 @@ app.get("/songs-of-the-day", async function(req, res) {
 });
 
 app.post("/vote", async function(req, res) {
-  console.log(req.body);
   const votingToken = req.cookies.votingToken;
 
   if (!(await Persistence.checkVotingToken(votingToken))) {
