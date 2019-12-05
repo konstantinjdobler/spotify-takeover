@@ -3,7 +3,7 @@ import { List, Button, Result, Rate, Icon, Skeleton, message } from "antd";
 import Song from "./Song";
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
 const API_URL = isProd ? process.env.REACT_APP_API_URL : process.env.REACT_APP_API_URL_DEV;
-console.log(API_URL, isProd);
+console.log("Starting in production mode (treu|false)", isProd);
 
 export default class SongVote extends React.Component {
   constructor(props) {
@@ -13,7 +13,7 @@ export default class SongVote extends React.Component {
       loading: true,
       votes: {},
       showAuth: false,
-      user: {}
+      user: {},
     };
   }
   async getTodaysSongs() {
@@ -144,7 +144,7 @@ export default class SongVote extends React.Component {
                 key={song.track.uri}
                 name={song.track.name}
                 artist={song.track.artists[0].name}
-                addedBy={song.added_by.display_name}
+                addedBy={song.added_by.id}
                 vote={this.getVoterForSong(song.track.uri, song.added_by.id)}
               />
             ))}
@@ -152,8 +152,8 @@ export default class SongVote extends React.Component {
           {this.state.songs.length > 0 ? (
             <Button onClick={this.saveVote}>Save my choice</Button>
           ) : (
-              "Nobody seems to have added a song today. Be the first one and win a secret prize!"
-            )}
+            "Nobody seems to have added a song today. Be the first one and win a secret prize!"
+          )}
         </div>
       );
   }

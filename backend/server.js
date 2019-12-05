@@ -104,14 +104,13 @@ app.post("/vote", async function (req, res) {
   const todaysSongs = await spotifyAppUser.getDailySongs();
   if (!todaysSongs) return
   for (const vote of req.body.votes) {
-    const songInTodaysSongs = todaysSongs.find(song => song.track.id === vote.trackURI);
-    console.log(songInTodaysSongs)
+    const songInTodaysSongs = todaysSongs.find(song => song.track.uri === vote.trackURI);
     if (!songInTodaysSongs) {
       console.log("Voting attempt for song not in todays songs, user:", authenticatedUser);
       res.status(400).send("Nice try Mot*!#fu#@er");
       return;
     }
-    if (songInTodaysSongs.added_by === authenticatedUser) {
+    if (songInTodaysSongs.added_by.id === authenticatedUser) {
       console.log("Voting attempt for own song, user:", authenticatedUser);
       res.status(400).send("Nice try Mot$!@fu#@er");
       return;
