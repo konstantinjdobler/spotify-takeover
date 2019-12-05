@@ -16,4 +16,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 42069
-CMD [ "node","-r", "esm",  "server.js" ]
+CMD [ "npm","run", "deploy" ]

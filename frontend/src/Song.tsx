@@ -1,5 +1,5 @@
 import React from "react";
-import { List, Rate } from "antd";
+import { List } from "antd";
 type SongProps = {
   artist: string;
   name: string;
@@ -12,6 +12,8 @@ const nameMap: { [key: string]: string } = {
   "pauludo.beneke": "Paul Udo",
   "11102348524": "Lasse",
   "1190715652": "Kris",
+  jadasipe: "David",
+  "hpm-hoberg": "Phillip",
 };
 export default class Song extends React.Component<SongProps> {
   render() {

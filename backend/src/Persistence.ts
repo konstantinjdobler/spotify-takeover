@@ -1,11 +1,13 @@
 /* eslint-disable require-jsdoc */
 
-const MongoClient = require("mongodb").MongoClient;
+import { MongoClient, Cursor } from "mongodb";
+import { Vote, User, PartialVote } from "./mongoSchemas";
 require("dotenv").config();
 
 class PersistenceClass {
+  mongoConnectionString: string;
   constructor() {
-    this.mongoConnectionString = process.env.MONGO_CONNECTION_STRING;
+    this.mongoConnectionString = process.env.MONGO_CONNECTION_STRING!;
   }
 
   async connectToDB() {
@@ -14,10 +16,10 @@ class PersistenceClass {
       return client.db("daily-song-vote");
     });
   }
-  async addVote(votingToken, votes) {
+  async addVote(votingToken: string, votes: PartialVote[]) {
     const db = await this.connectToDB();
     const user = await db.collection("users").findOne({ votingToken: votingToken });
-    const vote = {};
+    const vote = {} as Vote;
     vote.votingDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
     vote.user = user.user.id;
     vote.votes = votes;
@@ -30,30 +32,28 @@ class PersistenceClass {
     else console.log("Added new vote for user:" + vote.user + ". MongoDB result:", result.result.ok);
   }
 
-  async checkVotingToken(votingToken) {
+  async checkVotingToken(votingToken: string): Promise<User | null> {
     const db = await this.connectToDB();
-    const result = await db.collection("users").findOne({ votingToken: votingToken });
-    return result;
+    return db.collection("users").findOne({ votingToken: votingToken });
   }
 
-  async addUser(votingToken, userInfo, refreshToken) {
+  async addUser(votingToken: string, userInfo: SpotifyApi.UserObjectPublic, refreshToken: string) {
     const db = await this.connectToDB();
-    const result = await db
+    const operation = await db
       .collection("users")
       .replaceOne(
         { "user.id": userInfo.id },
         { votingToken: votingToken, user: userInfo, refreshToken: refreshToken },
         { upsert: true },
       );
-    if (result.result.nModified)
-      console.log("Overwrote existing user " + userInfo.id + ". MongoDB result:", result.result.ok);
-    else console.log("Added new user " + userInfo.id + ". MongoDB result:", result.result.ok);
+    if (operation.result.nModified)
+      console.log("Overwrote existing user " + userInfo.id + ". MongoDB result:", operation.result.ok);
+    else console.log("Added new user " + userInfo.id + ". MongoDB result:", operation.result.ok);
   }
-  async getVotesFromToday() {
+  async getVotesFromToday(): Promise<Cursor<Vote>> {
     const today = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
     const db = await this.connectToDB();
-    const result = await db.collection("votes").find({ votingDate: today });
-    return result;
+    return db.collection("votes").find({ votingDate: today });
   }
 }
 
