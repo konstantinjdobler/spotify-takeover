@@ -30,14 +30,14 @@ export default class SpotifyAppUserClient {
           return isToday(new Date(track.added_at));
         });
       })
-      .catch(e => console.log("error while tring to add track to playlist", e));
+      .catch(e => console.log("error while getting todays songs", e));
   }
   async addSongToPlaylist(trackURI, playlistID = this.seleçionPlaylistID) {
     await this.refreshAccessToken();
     this.engine
       .addTracksToPlaylist(playlistID, [trackURI])
       .then(resp => console.log(`Added track ${trackURI} to playlist ${playlistID}`))
-      .catch(e => console.log("error while tring to add track to playlist", e));
+      .catch(e => console.log("error while trying to add track to playlist", e));
   }
 }
 

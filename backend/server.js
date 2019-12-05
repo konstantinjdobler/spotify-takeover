@@ -63,20 +63,20 @@ app.use(cookieParser());
 
 const corsOptions = isDevelop
   ? {
-      origin: "http://localhost:3000",
-      credentials: true,
-      methods: ["GET", "POST"],
-      allowedheaders: ["Cookie"],
-    }
+    origin: "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST"],
+    allowedheaders: ["Cookie"],
+  }
   : {
-      origin: "https://vote.konstantin-dobler.de",
-      credentials: true,
-      methods: ["GET", "POST"],
-      allowedheaders: ["Cookie"],
-    };
+    origin: "https://vote.konstantin-dobler.de",
+    credentials: true,
+    methods: ["GET", "POST"],
+    allowedheaders: ["Cookie"],
+  };
 app.use(cors(corsOptions));
 
-app.get("/songs-of-the-day", async function(req, res) {
+app.get("/songs-of-the-day", async function (req, res) {
   try {
     const dailySongs = await spotifyAppUser.getDailySongs();
     res.status(200).json({ d: dailySongs });
@@ -86,26 +86,42 @@ app.get("/songs-of-the-day", async function(req, res) {
   }
 });
 
-app.post("/vote", async function(req, res) {
+app.post("/vote", async function (req, res) {
   const votingToken = req.cookies.votingToken;
-
-  if (!(await Persistence.checkVotingToken(votingToken))) {
+  const validVotingToken = await Persistence.checkVotingToken(votingToken)
+  if (!validVotingToken) {
     console.log("Unauthorized voting attempt, votingToken:", votingToken);
     res.status(401).send({ error: "Unauthorized" });
     return;
   }
-
+  const authenticatedUser = validVotingToken.user.id
   const totalVotes = req.body.votes.reduce((count, curr) => (count += curr.vote), 0);
   if (totalVotes > 5) {
-    console.log("Voting attempt with more than 5 points, votingToken:", votingToken);
+    console.log("Voting attempt with more than 5 points, user:", authenticatedUser);
     res.status(400).send("Nice try Mot$!#fu#@er");
     return;
+  }
+  const todaysSongs = await spotifyAppUser.getDailySongs();
+  if (!todaysSongs) return
+  for (const vote of req.body.votes) {
+    const songInTodaysSongs = todaysSongs.find(song => song.track.id === vote.trackURI);
+    console.log(songInTodaysSongs)
+    if (!songInTodaysSongs) {
+      console.log("Voting attempt for song not in todays songs, user:", authenticatedUser);
+      res.status(400).send("Nice try Mot*!#fu#@er");
+      return;
+    }
+    if (songInTodaysSongs.added_by === authenticatedUser) {
+      console.log("Voting attempt for own song, user:", authenticatedUser);
+      res.status(400).send("Nice try Mot$!@fu#@er");
+      return;
+    }
   }
   await Persistence.addVote(votingToken, req.body.votes);
   res.status(201).send({ ok: "created" });
 });
 
-app.get("/after-spotify-auth", async function(req, res) {
+app.get("/after-spotify-auth", async function (req, res) {
   const code = req.query.code;
   console.log("Retrieved authorization code from spotify: ", code);
   const refreshToken = (await getRefreshToken(code)).refresh_token;
@@ -121,12 +137,12 @@ app.get("/after-spotify-auth", async function(req, res) {
   res.redirect(frontendUrl + "?votingToken=" + votingToken);
 });
 
-app.get("/initial", async function(req, res) {
+app.get("/initial", async function (req, res) {
   const cookieVotingToken = req.cookies.votingToken;
   const validVotingToken = await Persistence.checkVotingToken(cookieVotingToken);
   if (cookieVotingToken && validVotingToken) {
     console.log("User authenticated", cookieVotingToken);
-    res.status(200).json({ ok: "ok" });
+    res.status(200).json({ ok: "ok", user: validVotingToken.user });
   } else if (cookieVotingToken && !validVotingToken) {
     console.log("Initial Request with invalid votingToken, sending authentication link", cookieVotingToken);
     const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
@@ -140,7 +156,7 @@ app.get("/initial", async function(req, res) {
   }
 });
 
-app.post("/add-song-to-selecion", async function(req, res) {
+app.post("/add-song-to-selecion", async function (req, res) {
   try {
     const trackURI = req.body.trackURI;
     const providedSecret = req.body.secret;

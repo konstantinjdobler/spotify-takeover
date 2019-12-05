@@ -33,7 +33,7 @@ class PersistenceClass {
   async checkVotingToken(votingToken) {
     const db = await this.connectToDB();
     const result = await db.collection("users").findOne({ votingToken: votingToken });
-    return !!result;
+    return result;
   }
 
   async addUser(votingToken, userInfo, refreshToken) {

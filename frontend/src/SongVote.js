@@ -13,6 +13,7 @@ export default class SongVote extends React.Component {
       loading: true,
       votes: {},
       showAuth: false,
+      user: {}
     };
   }
   async getTodaysSongs() {
@@ -46,7 +47,7 @@ export default class SongVote extends React.Component {
     if (jsonResponse.authRequired) {
       this.setState({ showAuth: jsonResponse.authRequired });
     } else {
-      this.setState({ showAuth: false });
+      this.setState({ showAuth: false, user: jsonResponse.user });
     }
   }
   async componentDidMount() {
@@ -57,22 +58,23 @@ export default class SongVote extends React.Component {
 
     console.log("Setting songs", this.state.songs);
   }
-  getVoterForSong(trackURI) {
+  getVoterForSong(trackURI, addedBy) {
     const rate = (
       <Rate
         key={trackURI}
         character={<Icon type="heart" />}
         allowHalf
         style={{ color: "red" }}
-        onChange={newValue => this.onVote(newValue, trackURI)}
+        onChange={newValue => this.onVote(newValue, trackURI, addedBy)}
         value={this.state.votes[trackURI] || 0}
       />
     );
     return rate;
   }
 
-  onVote = (newValue, trackURI) => {
-    if (this.getTotalVotesCast(trackURI) + newValue > 5) {
+  onVote = (newValue, trackURI, addedBy) => {
+    if (this.state.user.id === addedBy) message.info("You cannot vote for your own song!");
+    else if (this.getTotalVotesCast(trackURI) + newValue > 5) {
       message.info("You can only distribute up to 5 points");
       this.state.votes[trackURI] = 5 - this.getTotalVotesCast(trackURI);
     } else this.state.votes[trackURI] = newValue;
@@ -142,16 +144,16 @@ export default class SongVote extends React.Component {
                 key={song.track.uri}
                 name={song.track.name}
                 artist={song.track.artists[0].name}
-                addedBy={song.added_by.id}
-                vote={this.getVoterForSong(song.track.uri)}
+                addedBy={song.added_by.display_name}
+                vote={this.getVoterForSong(song.track.uri, song.added_by.id)}
               />
             ))}
           </List>
           {this.state.songs.length > 0 ? (
             <Button onClick={this.saveVote}>Save my choice</Button>
           ) : (
-            "Nobody seems to have added a song today. Be the first one and win a secret prize!"
-          )}
+              "Nobody seems to have added a song today. Be the first one and win a secret prize!"
+            )}
         </div>
       );
   }
