@@ -1,22 +1,35 @@
 import React from "react";
-import { List, Button, Result, Rate, Icon, Skeleton, message } from "antd";
+import { List, Button, Result, Rate, Icon, message } from "antd";
 import Song from "./Song";
+
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
 const API_URL = isProd ? process.env.REACT_APP_API_URL : process.env.REACT_APP_API_URL_DEV;
-console.log("Starting in production mode (treu|false)", isProd);
+console.log("Starting in production mode ( true | false )", isProd);
 
-export default class SongVote extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      songs: [],
-      loading: true,
-      votes: {},
-      showAuth: false,
-      user: {},
-    };
-  }
-  async getTodaysSongs() {
+type InitialRequestResponse = {
+  authRequired?: string;
+  user?: SpotifyApi.UserObjectPublic;
+};
+
+type SongVoteProps = {};
+type SongVoteState = {
+  songs: SpotifyApi.PlaylistTrackObject[];
+  loading: boolean;
+  authenticationLink?: string;
+  votes: { [trackURI: string]: number };
+  user?: SpotifyApi.UserObjectPublic;
+  voted: boolean;
+};
+
+export default class SongVote extends React.Component<SongVoteProps, SongVoteState> {
+  state: SongVoteState = {
+    songs: [],
+    loading: true,
+    votes: {},
+    voted: false,
+  };
+
+  async getTodaysSongs(): Promise<SpotifyApi.PlaylistTrackObject[]> {
     const response = await fetch(`${API_URL}/songs-of-the-day`);
     const jsonResponse = await response.json();
     return jsonResponse.d;
@@ -41,57 +54,14 @@ export default class SongVote extends React.Component {
       redirect: "follow",
     });
 
-    const jsonResponse = await response.json();
+    const jsonResponse: InitialRequestResponse = await response.json();
     console.log(jsonResponse);
 
     if (jsonResponse.authRequired) {
-      this.setState({ showAuth: jsonResponse.authRequired });
+      this.setState({ authenticationLink: jsonResponse.authRequired });
     } else {
-      this.setState({ showAuth: false, user: jsonResponse.user });
+      this.setState({ authenticationLink: undefined, user: jsonResponse.user });
     }
-  }
-  async componentDidMount() {
-    await this.initial();
-    if (this.state.showAuth) return;
-    const todaysSongs = await this.getTodaysSongs();
-    this.setState({ songs: todaysSongs, loading: false });
-
-    console.log("Setting songs", this.state.songs);
-  }
-  getVoterForSong(trackURI, addedBy) {
-    const rate = (
-      <Rate
-        key={trackURI}
-        character={<Icon type="heart" />}
-        allowHalf
-        style={{ color: "red" }}
-        onChange={newValue => this.onVote(newValue, trackURI, addedBy)}
-        value={this.state.votes[trackURI] || 0}
-      />
-    );
-    return rate;
-  }
-
-  onVote = (newValue, trackURI, addedBy) => {
-    if (this.state.user.id === addedBy) message.info("You cannot vote for your own song!");
-    else if (this.getTotalVotesCast(trackURI) + newValue > 5) {
-      message.info("You can only distribute up to 5 points");
-      this.state.votes[trackURI] = 5 - this.getTotalVotesCast(trackURI);
-    } else this.state.votes[trackURI] = newValue;
-    this.forceUpdate();
-  };
-
-  getTotalVotesCast(excludeTrackURI = null) {
-    let totalVotes = 0;
-    for (const key of Object.keys(this.state.votes)) {
-      if (key === excludeTrackURI) continue;
-      totalVotes += this.state.votes[key];
-    }
-    return totalVotes;
-  }
-
-  getLoadingIndicator() {
-    return <Icon type="loading" style={{ fontSize: "100px" }} />;
   }
 
   saveVote = async () => {
@@ -102,7 +72,6 @@ export default class SongVote extends React.Component {
         votesToSend.push({ trackURI, vote });
       }
     }
-    console.log(votesToSend);
     const result = await fetch(`${API_URL}/vote`, {
       method: "POST",
       credentials: "include",
@@ -116,6 +85,46 @@ export default class SongVote extends React.Component {
     if (body.ok === "created") this.setState({ voted: true });
   };
 
+  getTotalVotesCast(excludeTrackURI?: string) {
+    let totalVotes = 0;
+    for (const key of Object.keys(this.state.votes)) {
+      if (key === excludeTrackURI) continue;
+      totalVotes += this.state.votes[key];
+    }
+    return totalVotes;
+  }
+
+  onVote = (newValue: number, trackURI: string, addedBy: string) => {
+    if (this.state.user!.id === addedBy) message.info("You cannot vote for your own song!");
+    else if (this.getTotalVotesCast(trackURI) + newValue > 5) {
+      message.info("You can only distribute up to 5 points");
+      this.state.votes[trackURI] = 5 - this.getTotalVotesCast(trackURI);
+    } else this.state.votes[trackURI] = newValue;
+    this.forceUpdate();
+  };
+
+  async componentDidMount() {
+    await this.initial();
+    if (this.state.authenticationLink) return;
+    const todaysSongs = await this.getTodaysSongs();
+    this.setState({ songs: todaysSongs, loading: false });
+
+    console.log("Setting songs", this.state.songs);
+  }
+
+  getVoterForSong(trackURI: string, addedBy: string) {
+    return (
+      <Rate
+        key={trackURI}
+        character={<Icon type="heart" />}
+        allowHalf
+        style={{ color: "red" }}
+        onChange={newValue => this.onVote(newValue, trackURI, addedBy)}
+        value={this.state.votes[trackURI] || 0}
+      />
+    );
+  }
+
   votedPage = () => (
     <Result
       status="success"
@@ -128,10 +137,15 @@ export default class SongVote extends React.Component {
       ]}
     />
   );
+
+  loadingIndicator() {
+    return <Icon type="loading" style={{ fontSize: "100px" }} />;
+  }
+
   render() {
     if (this.state.voted) return this.votedPage();
-    if (this.state.showAuth) {
-      return <a href={this.state.showAuth}> Click here for Authentication </a>;
+    if (this.state.authenticationLink) {
+      return <a href={this.state.authenticationLink}> Click here for Authentication </a>;
     }
     if (this.state.loading)
       return (
@@ -144,7 +158,7 @@ export default class SongVote extends React.Component {
             alignItems: "center",
           }}
         >
-          {this.getLoadingIndicator()}
+          {this.loadingIndicator()}
         </div>
       );
     else
