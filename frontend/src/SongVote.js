@@ -90,8 +90,8 @@ export default class SongVote extends React.Component {
     return totalVotes;
   }
 
-  getLoadingSkeleton() {
-    return [1, 2, 3, 4, 5, 6, 7].map(key => <Skeleton key={key} title={false} loading paragraph={{ rows: 1 }} />);
+  getLoadingIndicator() {
+    return <Icon type="loading" style={{ fontSize: "100px" }} />;
   }
 
   saveVote = async () => {
@@ -134,11 +134,23 @@ export default class SongVote extends React.Component {
       return <a href={this.state.showAuth}> Click here for Authentication </a>;
     }
     if (this.state.loading)
-      return <div style={{ marginTop: "2%", marginBottom: "2%" }}>{this.getLoadingSkeleton()}</div>;
+      return (
+        <div
+          style={{
+            marginTop: "2%",
+            marginBottom: "2%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {this.getLoadingIndicator()}
+        </div>
+      );
     else
       return (
         <div>
-          <List style={{ margin: "2% 0px" }}>
+          <List style={{ margin: "2% 0px", display: "flex", justifyContent: "center", alignItems: "center" }}>
             {this.state.songs.map(song => (
               <Song
                 key={song.track.uri}
