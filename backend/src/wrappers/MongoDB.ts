@@ -1,10 +1,8 @@
-/* eslint-disable require-jsdoc */
-
 import { MongoClient, Cursor } from "mongodb";
-import { Vote, User, PartialVote } from "./mongoSchemas";
+import { Vote, User, PartialVote } from "../schemas";
 require("dotenv").config();
 
-class PersistenceClass {
+class MongoDBWrapper {
   mongoConnectionString: string;
   constructor() {
     this.mongoConnectionString = process.env.MONGO_CONNECTION_STRING!;
@@ -57,5 +55,5 @@ class PersistenceClass {
   }
 }
 
-const exportPersistence = new PersistenceClass();
-export default exportPersistence;
+const Persistence = new MongoDBWrapper();
+export default Persistence;

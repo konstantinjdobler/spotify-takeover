@@ -31,14 +31,14 @@ jobs:
             echo "Updating frontend"
             cd frontend
             echo "Updating frontend dependencies"
-            npm install
+            npm ci --only=production
             echo "Running frontend build"
             npm run build
 
             echo "Updating backend"
             cd ../backend
             echo "Updating backend dependencies"
-            npm install
+            npm ci --only=production
             echo "Building server"
             docker-compose up -d --build 
 

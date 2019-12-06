@@ -1,9 +1,8 @@
-/* eslint-disable require-jsdoc */
-const schedule = require("node-schedule");
-const axios = require("axios");
+import Persistence from "../wrappers/MongoDB";
+import schedule from "node-schedule";
+import axios from "axios";
 require("dotenv").config();
 
-import Persistence from "./Persistence";
 const getMax = (object: { [key: string]: number }) => {
   return Object.keys(object).filter(x => {
     return object[x] == Math.max.apply(null, Object.values(object));
