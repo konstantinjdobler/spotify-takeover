@@ -74,7 +74,12 @@ export default class DailySongVoteServer {
       }
       const todaysSongs = await this.spotifyAPI.getDailySongs();
       if (!todaysSongs) return;
-      for (const vote of req.body.votes) {
+      for (const vote of votes) {
+        if (vote.value < 0) {
+          console.log("Voting attempt for song with negative value, user:", authenticatedUser);
+          res.status(400).send({ error: "Nice try Mot%!#fu#@er" });
+          return;
+        }
         const songInTodaysSongs = todaysSongs.find(song => song.track.uri === vote.trackURI);
         if (!songInTodaysSongs) {
           console.log("Voting attempt for song not in todays songs, user:", authenticatedUser);
