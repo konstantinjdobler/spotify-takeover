@@ -1,5 +1,5 @@
 import { MongoClient, Cursor } from "mongodb";
-import { Vote, User, PartialVote } from "../schemas";
+import { Vote, SongRating, User } from "../schemas";
 require("dotenv").config();
 
 class MongoDBWrapper {
@@ -14,13 +14,13 @@ class MongoDBWrapper {
       return client.db("daily-song-vote");
     });
   }
-  async addVote(votingToken: string, votes: PartialVote[]) {
+  async addVote(votingToken: string, votes: SongRating[]) {
     const db = await this.connectToDB();
     const user = await db.collection("users").findOne({ votingToken: votingToken });
     const vote = {} as Vote;
     vote.votingDate = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
     vote.user = user.user.id;
-    vote.votes = votes;
+    vote.ratings = votes;
     const result = await db
       .collection("votes")
       .replaceOne({ user: vote.user, votingDate: vote.votingDate }, vote, { upsert: true });

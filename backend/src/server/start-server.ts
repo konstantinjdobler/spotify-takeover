@@ -1,12 +1,12 @@
 import SpotifyAppUserClient, { SpotifyUserAuth } from "../wrappers/SpotifyAPI";
 import { scheduleCron } from "./cronjob";
-import DailySongVoteServer from "./server";
+import DailySongVoteServer from "./DailySongVoteServer";
 require("dotenv").config();
 
 const developmentMode = process.env.NODE_ENV !== "production";
 
 const SECRET = process.env.SECRET!;
-const developRedirectUri = "https://mousiki.localtunnel.me/after-spotify-auth";
+const developRedirectUri = "https://mousiki123.localtunnel.me/after-spotify-auth";
 const spotifyAuthCallback = developmentMode ? developRedirectUri : process.env.REDIRECT_URI!;
 const frontendUrl = developmentMode ? "http://localhost:3000" : process.env.FRONTEND_URL!;
 const spotifyUserWhitelist = process.env.SPOTIFY_USER_WHITELIST!.split(",");

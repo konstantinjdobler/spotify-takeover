@@ -1,22 +1,18 @@
 import React from "react";
 import { List, Button, Result, Rate, Icon, message } from "antd";
 import Song from "./Song";
+import { InitialRequestResponse, SongRating, VoteRequest, VoteRequestResponse } from "./schemas";
 
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
 const API_URL = isProd ? process.env.REACT_APP_API_URL : process.env.REACT_APP_API_URL_DEV;
 console.log("Starting in production mode ( true | false )", isProd);
-
-type InitialRequestResponse = {
-  authRequired?: string;
-  user?: SpotifyApi.UserObjectPublic;
-};
 
 type SongVoteProps = {};
 type SongVoteState = {
   songs: SpotifyApi.PlaylistTrackObject[];
   loading: boolean;
   authenticationLink?: string;
-  votes: { [trackURI: string]: number };
+  ratings: { [trackURI: string]: number };
   user?: SpotifyApi.UserObjectPublic;
   voted: boolean;
 };
@@ -25,7 +21,7 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
   state: SongVoteState = {
     songs: [],
     loading: true,
-    votes: {},
+    ratings: {},
     voted: false,
   };
 
@@ -65,41 +61,42 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
   }
 
   saveVote = async () => {
-    const votesToSend = [];
-    for (const trackURI of Object.keys(this.state.votes)) {
-      const vote = this.state.votes[trackURI];
-      if (vote > 0) {
-        votesToSend.push({ trackURI, vote });
+    const votesToSend: SongRating[] = [];
+    for (const trackURI of Object.keys(this.state.ratings)) {
+      const value = this.state.ratings[trackURI];
+      if (value > 0) {
+        votesToSend.push({ trackURI, value });
       }
     }
-    const result = await fetch(`${API_URL}/vote`, {
+    const bodyContent: VoteRequest = { votes: votesToSend };
+    const voteRequestResponse = await fetch(`${API_URL}/vote`, {
       method: "POST",
       credentials: "include",
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ votes: votesToSend }),
+      body: JSON.stringify(bodyContent),
     });
-    const body = await result.json();
-    if (body.ok === "created") this.setState({ voted: true });
+    const responseBody: VoteRequestResponse = await voteRequestResponse.json();
+    if (responseBody.ok) this.setState({ voted: true });
   };
 
   getTotalVotesCast(excludeTrackURI?: string) {
-    let totalVotes = 0;
-    for (const key of Object.keys(this.state.votes)) {
+    let totalRating = 0;
+    for (const key of Object.keys(this.state.ratings)) {
       if (key === excludeTrackURI) continue;
-      totalVotes += this.state.votes[key];
+      totalRating += this.state.ratings[key];
     }
-    return totalVotes;
+    return totalRating;
   }
 
   onVote = (newValue: number, trackURI: string, addedBy: string) => {
     if (this.state.user!.id === addedBy) message.info("You cannot vote for your own song!");
     else if (this.getTotalVotesCast(trackURI) + newValue > 5) {
       message.info("You can only distribute up to 5 points");
-      this.state.votes[trackURI] = 5 - this.getTotalVotesCast(trackURI);
-    } else this.state.votes[trackURI] = newValue;
+      this.state.ratings[trackURI] = 5 - this.getTotalVotesCast(trackURI);
+    } else this.state.ratings[trackURI] = newValue;
     this.forceUpdate();
   };
 
@@ -120,7 +117,7 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
         allowHalf
         style={{ color: "red" }}
         onChange={newValue => this.onVote(newValue, trackURI, addedBy)}
-        value={this.state.votes[trackURI] || 0}
+        value={this.state.ratings[trackURI] || 0}
       />
     );
   }

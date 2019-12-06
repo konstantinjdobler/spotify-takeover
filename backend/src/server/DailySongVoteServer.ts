@@ -6,8 +6,8 @@ import cors from "cors";
 
 import SpotifyAppUserClient, { SpotifyUserAuth } from "../wrappers/SpotifyAPI";
 import Persistence from "../wrappers/MongoDB";
-import { PartialVote } from "../schemas";
 import { makeID, getRefreshToken } from "./server-utils";
+import { SongRating } from "../schemas";
 require("dotenv").config();
 
 export default class DailySongVoteServer {
@@ -58,7 +58,7 @@ export default class DailySongVoteServer {
 
     this.app.post("/vote", async (req, res) => {
       const votingToken: string = req.cookies.votingToken;
-      const votes: PartialVote[] = req.body.votes;
+      const votes: SongRating[] = req.body.votes;
       const validVotingToken = await Persistence.checkVotingToken(votingToken);
       if (!validVotingToken) {
         console.log("Unauthorized voting attempt, votingToken:", votingToken);
@@ -66,10 +66,10 @@ export default class DailySongVoteServer {
         return;
       }
       const authenticatedUser = validVotingToken.user.id;
-      const totalVotes = votes.reduce((count, currentPartialVote) => (count += currentPartialVote.vote), 0);
+      const totalVotes = votes.reduce((count, currentPartialVote) => (count += currentPartialVote.value), 0);
       if (totalVotes > 5) {
         console.log("Voting attempt with more than 5 points, user:", authenticatedUser);
-        res.status(400).send("Nice try Mot$!#fu#@er");
+        res.status(400).send({ error: "Nice try Mot$!#fu#@er" });
         return;
       }
       const todaysSongs = await this.spotifyAPI.getDailySongs();
@@ -78,17 +78,17 @@ export default class DailySongVoteServer {
         const songInTodaysSongs = todaysSongs.find(song => song.track.uri === vote.trackURI);
         if (!songInTodaysSongs) {
           console.log("Voting attempt for song not in todays songs, user:", authenticatedUser);
-          res.status(400).send("Nice try Mot*!#fu#@er");
+          res.status(400).send({ error: "Nice try Mot*!#fu#@er" });
           return;
         }
         if (songInTodaysSongs.added_by.id === authenticatedUser) {
           console.log("Voting attempt for own song, user:", authenticatedUser);
-          res.status(400).send("Nice try Mot$!@fu#@er");
+          res.status(400).send({ error: "Nice try Mot$!@fu#@er" });
           return;
         }
       }
       await Persistence.addVote(votingToken, req.body.votes);
-      res.status(201).send({ ok: "created" });
+      res.status(201).send({ ok: "Added Vote" });
     });
 
     this.app.get("/after-spotify-auth", async (req, res) => {
@@ -112,17 +112,17 @@ export default class DailySongVoteServer {
       const validVotingToken = await Persistence.checkVotingToken(cookieVotingToken);
       if (cookieVotingToken && validVotingToken) {
         console.log("User authenticated", validVotingToken.user.display_name);
-        res.status(200).json({ ok: "ok", user: validVotingToken.user });
+        res.status(200).send({ ok: "ok", user: validVotingToken.user });
       } else if (cookieVotingToken && !validVotingToken) {
         console.log("Initial Request with invalid votingToken, sending authentication link", cookieVotingToken);
         const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
         console.log("Spotify Auth url: ", spotifyAuthUrl);
-        res.status(200).json({ authRequired: spotifyAuthUrl });
+        res.status(200).send({ authRequired: spotifyAuthUrl });
       } else {
         console.log("Initial request without votingToken, sending authentication link");
         const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
         console.log("Spotify Auth url: ", spotifyAuthUrl);
-        res.status(200).json({ authRequired: spotifyAuthUrl });
+        res.status(200).send({ authRequired: spotifyAuthUrl });
       }
     });
 

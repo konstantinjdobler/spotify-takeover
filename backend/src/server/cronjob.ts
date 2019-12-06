@@ -14,9 +14,9 @@ export function scheduleCron() {
     const voteObjects = await votesCursor.toArray();
     const votesDict: { [trackURI: string]: number } = {};
     for (const vote of voteObjects) {
-      vote.votes.forEach(partialVoteOfUser => {
-        if (votesDict[partialVoteOfUser.trackURI] === undefined) votesDict[partialVoteOfUser.trackURI] = 0;
-        votesDict[partialVoteOfUser.trackURI] += partialVoteOfUser.vote;
+      vote.ratings.forEach(ratings => {
+        if (votesDict[ratings.trackURI] === undefined) votesDict[ratings.trackURI] = 0;
+        votesDict[ratings.trackURI] += ratings.value;
       });
     }
     const mostVotedSongs = getMax(votesDict);
