@@ -34,11 +34,11 @@ export default class SpotifyAppUserClient {
       });
     });
   }
-  async addSongToPlaylist(trackURI: string, playlistID = this.seleçionPlaylistID) {
+  async addSongsToPlaylist(trackURIs: string[], playlistID = this.seleçionPlaylistID) {
     await this.refreshAccessToken();
-    this.engine
-      .addTracksToPlaylist(playlistID, [trackURI])
-      .then(resp => console.log(`Added track ${trackURI} to playlist ${playlistID}`));
+    await this.engine
+      .addTracksToPlaylist(playlistID, trackURIs)
+      .then(resp => console.log(`Added track ${trackURIs} to playlist ${playlistID}`));
   }
 }
 

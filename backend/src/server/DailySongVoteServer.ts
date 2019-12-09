@@ -140,11 +140,12 @@ export default class DailySongVoteServer {
 
     this.app.post("/add-song-to-selecion", async (req, res) => {
       try {
-        const trackURI = req.body.trackURI;
-        const providedSecret = req.body.secret;
-        //if (providedSecret !== SECRET) res.status(401).send("Unauthorized. Make another guess. I dare you.");
-        await this.spotifyAPI.addSongToPlaylist(trackURI);
-        res.status(200).send("Added");
+        const trackURIs: string[] = req.body.trackURIs;
+        const providedSecret: string = req.body.secret;
+        if (providedSecret !== process.env.SECRET)
+          res.status(401).send("Unauthorized. Make another guess. I dare you.");
+        await this.spotifyAPI.addSongsToPlaylist(trackURIs);
+        res.status(200).send("Added song");
       } catch (error) {
         console.log("Error while adding song to seleçion", error);
         res.status(500).send();
