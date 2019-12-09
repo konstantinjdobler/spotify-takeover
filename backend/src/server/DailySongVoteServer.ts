@@ -1,6 +1,6 @@
 /* eslint-disable require-jsdoc */
 import express from "express";
-import { Application } from "express";
+import { Application, Response as ExpressResponse } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
@@ -45,6 +45,31 @@ export default class DailySongVoteServer {
     );
   }
 
+  async validateVoteRequest(votes: SongRating[], userName: string) {
+    const todaysSongs = await this.spotifyAPI.getDailySongs();
+    if (!todaysSongs) return { validationError: "No daily songs found", m: "Nice try Mot%?#fu#@er" };
+    let totalVoteValue = 0;
+    for (const vote of votes) {
+      if (isNaN(vote.value))
+        return { validationError: `Value of vote is NaN: ${vote.value}`, m: "Nice try Mot%-#fu#@er" };
+
+      if (vote.value < 0 || vote.value > 5)
+        return { validationError: `Vote with illegal value: ${vote.value}`, m: "Nice try Mot%!#fu#@er" };
+
+      const validVotedSong = todaysSongs.find(song => song.track.uri === vote.trackURI);
+      if (!validVotedSong) return { validationError: "Vote for illegal song", m: "Nice try Mot*!#fu#@er" };
+
+      if (validVotedSong.added_by.id === userName)
+        return { validationError: "Vote for own song", m: "Nice try Mot%!#fu#@er" };
+
+      totalVoteValue += vote.value;
+    }
+    if (totalVoteValue > 5) {
+      return { validationError: "Total votes more than 5", m: "Nice try Mot$!#fu#@er" };
+    }
+    return { validationError: false };
+  }
+
   initRoutes() {
     this.app.get("/songs-of-the-day", async (req, res) => {
       try {
@@ -65,34 +90,14 @@ export default class DailySongVoteServer {
         res.status(401).send({ error: "Unauthorized" });
         return;
       }
-      const authenticatedUser = validVotingToken.user.id;
-      const totalVotes = votes.reduce((count, currentPartialVote) => (count += currentPartialVote.value), 0);
-      if (totalVotes > 5) {
-        console.log("Voting attempt with more than 5 points, user:", authenticatedUser);
-        res.status(400).send({ error: "Nice try Mot$!#fu#@er" });
+      const userName = validVotingToken.user.id;
+      const validationResult = await this.validateVoteRequest(votes, userName);
+      if (validationResult.validationError) {
+        console.log(`Bad Vote Request | user: ${userName} | ${validationResult.validationError}`);
+        res.status(400).send(validationResult.m);
         return;
       }
-      const todaysSongs = await this.spotifyAPI.getDailySongs();
-      if (!todaysSongs) return;
-      for (const vote of votes) {
-        if (vote.value < 0) {
-          console.log("Voting attempt for song with negative value, user:", authenticatedUser);
-          res.status(400).send({ error: "Nice try Mot%!#fu#@er" });
-          return;
-        }
-        const songInTodaysSongs = todaysSongs.find(song => song.track.uri === vote.trackURI);
-        if (!songInTodaysSongs) {
-          console.log("Voting attempt for song not in todays songs, user:", authenticatedUser);
-          res.status(400).send({ error: "Nice try Mot*!#fu#@er" });
-          return;
-        }
-        if (songInTodaysSongs.added_by.id === authenticatedUser) {
-          console.log("Voting attempt for own song, user:", authenticatedUser);
-          res.status(400).send({ error: "Nice try Mot$!@fu#@er" });
-          return;
-        }
-      }
-      await Persistence.addVote(votingToken, req.body.votes);
+      await Persistence.addVote(votingToken, votes);
       res.status(201).send({ ok: "Added Vote" });
     });
 
@@ -114,17 +119,19 @@ export default class DailySongVoteServer {
 
     this.app.get("/initial", async function(req, res) {
       const cookieVotingToken = req.cookies.votingToken;
-      const validVotingToken = await Persistence.checkVotingToken(cookieVotingToken);
-      if (cookieVotingToken && validVotingToken) {
-        console.log("User authenticated", validVotingToken.user.display_name);
-        res.status(200).send({ ok: "ok", user: validVotingToken.user });
-      } else if (cookieVotingToken && !validVotingToken) {
-        console.log("Initial Request with invalid votingToken, sending authentication link", cookieVotingToken);
+      if (!cookieVotingToken) {
+        console.log("Initial request without votingToken, sending authentication link");
         const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
         console.log("Spotify Auth url: ", spotifyAuthUrl);
         res.status(200).send({ authRequired: spotifyAuthUrl });
+        return;
+      }
+      const validVotingToken = await Persistence.checkVotingToken(cookieVotingToken);
+      if (validVotingToken) {
+        console.log("User authenticated", validVotingToken.user.display_name);
+        res.status(200).send({ ok: "ok", user: validVotingToken.user });
       } else {
-        console.log("Initial request without votingToken, sending authentication link");
+        console.log("Initial Request with invalid votingToken, sending authentication link", cookieVotingToken);
         const spotifyAuthUrl = SpotifyUserAuth.getAuthorizeURL();
         console.log("Spotify Auth url: ", spotifyAuthUrl);
         res.status(200).send({ authRequired: spotifyAuthUrl });
