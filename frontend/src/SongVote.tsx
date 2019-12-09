@@ -37,7 +37,8 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
     if (votingToken) {
       console.log(votingToken);
       const domain = isProd ? "konstantin-dobler.de" : "localhost";
-      document.cookie = `votingToken=${votingToken};path=/;domain=${domain}`;
+      document.cookie = `votingToken=${votingToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
+      window.localStorage.setItem("votingToken", votingToken);
       var uri = window.location.toString();
       if (uri.indexOf("?") > 0) {
         var clean_uri = uri.substring(0, uri.indexOf("?"));
