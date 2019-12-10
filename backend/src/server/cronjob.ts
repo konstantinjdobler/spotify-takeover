@@ -37,7 +37,7 @@ const singleTrackLeading = [
   "It's getting close! The current leader is: ",
   "hey guys OwO *winks* i just want to tell you, this song is currently leading in the votes: ",
   "Yarrrrr! I'm'a pirate! This song is currently the one with the best rrrrrrratings today! ",
-  "*in a lordly, arrogant voice* Butler James! could you please tell these stinking nerds that the currently leading song is ",
+  "*in a lordly, arrogant voice* Butler James! Could you please tell these stinking nerds that the currently leading song is ",
   "Meese Jar Jar Binks! Meese want to say to youse that the leading songse today is ",
   "Yarrrrr! I'm'a pirate! Just a little bit longer an this song might get the bounty! ",
 ];
@@ -126,11 +126,11 @@ export async function scheduleCron() {
     const today = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
     if (today.getHours() === 8) {
       const suffix =
-        "Add a song here: https://open.spotify.com/playlist/7mZIe5mLaO2UdVwPW0zTFN?si=wpOOST8bSX-Lj1OFiwg4xg. Vote on this premium website: vote.konstantin-dobler.de";
+        "Add a song here: https://open.spotify.com/playlist/7mZIe5mLaO2UdVwPW0zTFN?si=wpOOST8bSX-Lj1OFiwg4xg. Vote on this premium website: https://vote.konstantin-dobler.de";
       postToSlack(randomChoice(votingReminders) + suffix);
     } else if (today.getHours() > 8 && today.getHours() < 18) {
       console.log("Most voted songs so far:", mostVotedSongs, "time:", today.toString(), today.getHours());
-      if (today.getHours() === 17 || today.getHours() === 16) {
+      if (today.getHours() === 17 || today.getHours() === 15) {
         postToSlack(getLeadingMessage(mostVotedSongs));
       }
     } else if (today.getHours() == 18) {
