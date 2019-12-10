@@ -27,6 +27,19 @@ const singleTrackLeading = [
   "The one song to rule them all (well, if nobody changes his vote...) ",
   "Sorry kids, no participation throphies here... Currently leading is ",
   "Don't count your chickens before they hatch! You may be leading but you have not won yet. ",
+  "The lead is... an atomic element. But the leading song is ",
+  "Winner winner, chicken dinner (is ready soon but not yet)! Currently leading: ",
+  "We've got one song on leading on top right now and it's: ",
+  "Whether you're trekking in the mountains or tracking User Behaviour: there's one track that's right on track to win today. Well if it stays in the lead...",
+  "In Leeds, a right proper british lad is drinkin' a pint of stout. In the lead, we have this song: ",
+  "Currently leading: ",
+  "Das folgende Lied is in the lead: ",
+  "It's getting close! The current leader is: ",
+  "hey guys OwO *winks* i just want to tell you, this song is currently leading in the votes: ",
+  "Yarrrrr! I'm'a pirate! This song is currently the one with the best rrrrrrratings today! ",
+  "*in a lordly, arrogant voice* Butler James! could you please tell these stinking nerds that the currently leading song is ",
+  "Meese Jar Jar Binks! Meese want to say to youse that the leading songse today is ",
+  "Yarrrrr! I'm'a pirate! Just a little bit longer an this song might get the bounty! ",
 ];
 
 const multipleTracksLeading = [
@@ -44,6 +57,8 @@ const singleTrackWinning = [
   "Guys, I'm proud of you. You let a great song win today! ",
   "Winner winner, chicken dinner: ",
   "Did you here about that new Asian Karma restaurant around here? They don't have a menu, you just get what you deserve. Also this track won today: ",
+  "How do you drown a hipster? Throw him in the mainstream! How could you kill him too? Make him listen to todays winner, the most mainstream song ever: ",
+  "How does Moses make tea? He brews... He brews the tea with the heat of todays hottest single (after Paul Udo): ",
 ];
 
 const multipleTracksWinning = [
@@ -61,6 +76,10 @@ function randomChoice(arr: Array<any>) {
 function getLeadingMessage(mostVotedSongs: string[]) {
   let leadingTidbit: string;
   let songInfo: string;
+  if (mostVotedSongs.length === 0) {
+    return "You guys are whack! Nobody voted so far...";
+  }
+
   if (mostVotedSongs.length === 1) {
     leadingTidbit = randomChoice(singleTrackLeading);
     songInfo = mostVotedSongs[0];
@@ -98,6 +117,7 @@ async function getMostVotedSongsToday() {
   }
   return getMax(votesDict);
 }
+
 export async function scheduleCron() {
   const httpScheme = process.env.NODE_ENV === "production" ? "https" : "http";
 
