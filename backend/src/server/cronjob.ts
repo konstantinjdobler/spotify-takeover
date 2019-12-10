@@ -134,7 +134,7 @@ export async function scheduleCron() {
         postToSlack(getLeadingMessage(mostVotedSongs));
       }
     } else if (today.getHours() == 18) {
-      await axios.post(`${httpScheme}://backend:${process.env.PORT}/add-song-to-selecion`, {
+      await axios.post(`http://backend:${process.env.PORT}/add-song-to-selecion`, {
         secret: process.env.SECRET,
         trackURIs: mostVotedSongs,
       });
