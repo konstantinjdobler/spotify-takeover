@@ -3,17 +3,11 @@ import { List, Button, Result, Rate, Icon, message } from "antd";
 import Song from "./Song";
 import { InitialRequestResponse, SongRating, VoteRequest, VoteRequestResponse } from "./schemas";
 
-const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
-const API_URL = isProd ? process.env.REACT_APP_API_URL : process.env.REACT_APP_API_URL_DEV;
-console.log("Starting in production mode ( true | false )", isProd);
-
-type SongVoteProps = {};
+type SongVoteProps = { apiUrl: string; user: SpotifyApi.UserObjectPublic };
 type SongVoteState = {
   songs: SpotifyApi.PlaylistTrackObject[];
   loading: boolean;
-  authenticationLink?: string;
   ratings: { [trackURI: string]: number };
-  user?: SpotifyApi.UserObjectPublic;
   voted: boolean;
 };
 
@@ -26,39 +20,9 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
   };
 
   async getTodaysSongs(): Promise<SpotifyApi.PlaylistTrackObject[]> {
-    const response = await fetch(`${API_URL}/songs-of-the-day`);
+    const response = await fetch(`${this.props.apiUrl}/songs-of-the-day`);
     const jsonResponse = await response.json();
     return jsonResponse.d;
-  }
-
-  async initial() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const votingToken = urlParams.get("votingToken");
-    if (votingToken) {
-      console.log(votingToken);
-      const domain = isProd ? "konstantin-dobler.de" : "localhost";
-      document.cookie = `votingToken=${votingToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
-      window.localStorage.setItem("votingToken", votingToken);
-      var uri = window.location.toString();
-      if (uri.indexOf("?") > 0) {
-        var clean_uri = uri.substring(0, uri.indexOf("?"));
-        window.history.replaceState({}, document.title, clean_uri);
-      }
-    }
-    const response = await fetch(`${API_URL}/initial`, {
-      method: "GET",
-      credentials: "include",
-      redirect: "follow",
-    });
-
-    const jsonResponse: InitialRequestResponse = await response.json();
-    console.log(jsonResponse);
-
-    if (jsonResponse.authRequired) {
-      this.setState({ authenticationLink: jsonResponse.authRequired });
-    } else {
-      this.setState({ authenticationLink: undefined, user: jsonResponse.user });
-    }
   }
 
   saveVote = async () => {
@@ -70,7 +34,7 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
       }
     }
     const bodyContent: VoteRequest = { votes: votesToSend };
-    const voteRequestResponse = await fetch(`${API_URL}/vote`, {
+    const voteRequestResponse = await fetch(`${this.props.apiUrl}/vote`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -93,7 +57,7 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
   }
 
   onVote = (newValue: number, trackURI: string, addedBy: string) => {
-    if (this.state.user!.id === addedBy) message.info("You cannot vote for your own song!");
+    if (this.props.user.id === addedBy) message.info("You cannot vote for your own song!");
     else if (this.getTotalVotesCast(trackURI) + newValue > 5) {
       message.info("You can only distribute up to 5 points");
       this.state.ratings[trackURI] = 5 - this.getTotalVotesCast(trackURI);
@@ -102,8 +66,6 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
   };
 
   async componentDidMount() {
-    await this.initial();
-    if (this.state.authenticationLink) return;
     const todaysSongs = await this.getTodaysSongs();
     this.setState({ songs: todaysSongs, loading: false });
 
@@ -142,9 +104,6 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
 
   render() {
     if (this.state.voted) return this.votedPage();
-    if (this.state.authenticationLink) {
-      return <a href={this.state.authenticationLink}> Click here for Authentication </a>;
-    }
     if (this.state.loading)
       return (
         <div
