@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: executing remote ssh commands using password
-        uses: appleboy/ssh-action@master
+        uses: konstantinjdobler/ssh-action@master
         with:
           host: ${{ secrets.PERSONAL_SERVER_HOST }}
           username: ${{ secrets.PERSONAL_SERVER_USER }}
