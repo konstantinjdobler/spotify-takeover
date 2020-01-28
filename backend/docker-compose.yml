@@ -2,7 +2,7 @@ version: "3.3"
 
 services:
   backend:
-    container_name: song-vote-api
+    container_name: spotify-takeover-api
     build: .
     volumes:
       - ./:/usr/src/app

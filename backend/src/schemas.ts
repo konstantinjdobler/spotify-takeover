@@ -1,13 +1,4 @@
-export interface SongRating {
-  value: number;
-  trackURI: string;
-}
 
-export interface Vote {
-  votingDate: string;
-  user: string;
-  ratings: SongRating[];
-}
 export interface User {
   refreshToken: string;
   votingToken: string;
@@ -19,8 +10,14 @@ export type InitialRequestResponse = {
   user?: SpotifyApi.UserObjectPublic;
 };
 
-export type VoteRequest = {
-  votes: SongRating[];
-};
-
 export type VoteRequestResponse = { error?: string; ok?: string };
+export type TakeoverEvent = {
+  userID: string;
+  timestamp: string;
+  orderedSongs: PlaybackEvent[]
+}
+type TrackURI = string
+type PlaybackEvent = {
+  song: TrackURI
+  duration: number
+}

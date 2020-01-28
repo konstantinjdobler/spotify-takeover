@@ -5,64 +5,52 @@ function isToday(utcDate: Date) {
   const shiftedUTCDate = utcDate.toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
   return shiftedUTCDate === today;
 }
-export default class SpotifyAppUserClient {
+
+export type SpotifyApiCredentials = {
+  clientId: string,
+  clientSecret: string,
+  redirectUri: string,
+}
+export default abstract class SpotifyClient {
   engine: SpotifyWebApi;
+  static spotifyCredentials: SpotifyApiCredentials
+  static setCredentials(credentials: SpotifyApiCredentials) {
+    this.spotifyCredentials = credentials
+  }
   constructor(
     refreshToken: string,
-    clientId: string,
-    clientSecret: string,
-    redirectUri: string,
-    private dailySongsPlaylistID: string,
-    private seleçionPlaylistID: string,
   ) {
-    this.dailySongsPlaylistID = dailySongsPlaylistID;
-    this.seleçionPlaylistID = seleçionPlaylistID;
-    this.engine = new SpotifyWebApi({ clientId, clientSecret, redirectUri });
+    if (!SpotifyClient.spotifyCredentials) throw new Error("Set credentials before instantiating")
+    this.engine = new SpotifyWebApi(SpotifyClient.spotifyCredentials);
     this.engine.setRefreshToken(refreshToken);
   }
+
   get accessToken() {
     return this.engine.getAccessToken();
   }
+
+  //TODO: implement refreshing only when necessary
   async refreshAccessToken() {
     await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
   }
-  async getDailySongs() {
-    await this.refreshAccessToken();
-    return this.engine.getPlaylistTracks(this.dailySongsPlaylistID).then(resp => {
-      return resp.body.items.filter(track => {
-        return isToday(new Date(track.added_at));
-      });
-    });
-  }
-  async addSongsToPlaylist(trackURIs: string[], playlistID = this.seleçionPlaylistID) {
-    await this.refreshAccessToken();
-    await this.engine
-      .addTracksToPlaylist(playlistID, trackURIs)
-      .then(resp => console.log(`Added track ${trackURIs} to playlist ${playlistID}`));
+
+
+}
+export class ApplicationSpotifyClient extends SpotifyClient {
+  setCurrentPlayback() { }
+
+  getUserAuthUrl() {
+    return this.engine.createAuthorizeURL(["user-read-currently-playing", "user-read-currently-playing"], "nicerstate", true);
   }
 }
 
-export class SpotifyUserAuth {
-  static authDict = {};
-  static engine: SpotifyWebApi;
-  static init(clientId: string, clientSecret: string, redirectUri: string) {
-    this.engine = new SpotifyWebApi({
-      clientId,
-      clientSecret,
-      redirectUri,
-    });
-  }
-  static getAuthorizeURL() {
-    return this.engine.createAuthorizeURL(["user-read-email"], "nicerstate", true);
-  }
+export class UserSpotifyClient extends SpotifyClient {
+  getCurrentPlayback() { }
 
-  static async getUserInfo(userRefreshToken: string) {
-    await this.authorizeRequest(userRefreshToken);
+  async getUserInfo() {
+    await this.refreshAccessToken();
     const userInfo = await this.engine.getMe();
     return userInfo.body;
   }
-  static async authorizeRequest(refreshToken: string) {
-    this.engine.setRefreshToken(refreshToken);
-    await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
-  }
 }
+
