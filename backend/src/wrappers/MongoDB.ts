@@ -30,7 +30,7 @@ class MongoDBWrapper {
     console.log("Added new takeover event for user:" + user.user.display_name || user.user.id + ". MongoDB result:", result.result.ok);
   }
 
-  async checkAuthenticityToken(authenticityToken: string): Promise<User | null> {
+  async getUserForToken(authenticityToken: string): Promise<User | null> {
     const db = await this.connectToDB();
     return db.collection("users").findOne({ authenticityToken: authenticityToken });
   }

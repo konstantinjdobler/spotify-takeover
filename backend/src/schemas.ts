@@ -10,14 +10,13 @@ export type InitialRequestResponse = {
   user?: SpotifyApi.UserObjectPublic;
 };
 
-export type VoteRequestResponse = { error?: string; ok?: string };
 export type TakeoverEvent = {
   userID: string;
   timestamp: string;
   orderedSongs: PlaybackEvent[]
 }
-type TrackURI = string
-type PlaybackEvent = {
+export type TrackURI = string
+export type PlaybackEvent = {
   song: TrackURI
   duration: number
 }

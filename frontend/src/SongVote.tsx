@@ -1,7 +1,5 @@
 import React from "react";
 import { List, Button, Result, Rate, Icon, message } from "antd";
-import Song from "./Song";
-import { InitialRequestResponse, SongRating, VoteRequest, VoteRequestResponse } from "./schemas";
 
 type SongVoteProps = { apiUrl: string; user: SpotifyApi.UserObjectPublic };
 type SongVoteState = {
@@ -26,14 +24,14 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
   }
 
   saveVote = async () => {
-    const votesToSend: SongRating[] = [];
+    const votesToSend: any[] = [];
     for (const trackURI of Object.keys(this.state.ratings)) {
       const value = this.state.ratings[trackURI];
       if (value > 0) {
         votesToSend.push({ trackURI, value });
       }
     }
-    const bodyContent: VoteRequest = { votes: votesToSend };
+    const bodyContent: any = { votes: votesToSend };
     const voteRequestResponse = await fetch(`${this.props.apiUrl}/vote`, {
       method: "POST",
       credentials: "include",
@@ -43,7 +41,7 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
       },
       body: JSON.stringify(bodyContent),
     });
-    const responseBody: VoteRequestResponse = await voteRequestResponse.json();
+    const responseBody: any = await voteRequestResponse.json();
     if (responseBody.ok) this.setState({ voted: true });
   };
 
@@ -121,22 +119,12 @@ export default class SongVote extends React.Component<SongVoteProps, SongVoteSta
     else
       return (
         <div>
-          <List style={{ margin: "2% 0px", display: "flex", justifyContent: "center", alignItems: "center" }}>
-            {this.state.songs.map(song => (
-              <Song
-                key={song.track.uri}
-                name={song.track.name}
-                artist={song.track.artists[0].name}
-                addedBy={song.added_by.id}
-                vote={this.getVoterForSong(song.track.uri, song.added_by.id)}
-              />
-            ))}
-          </List>
+
           {this.state.songs.length > 0 ? (
             <Button onClick={this.saveVote}>Save my choice</Button>
           ) : (
-            "Nobody seems to have added a song today. Be the first one and win a secret prize!"
-          )}
+              "Nobody seems to have added a song today. Be the first one and win a secret prize!"
+            )}
         </div>
       );
   }

@@ -1,10 +1,9 @@
 import React from "react";
 import SongVote from "./SongVote";
-import { InitialRequestResponse } from "./schemas";
 import { Icon, Result, Button } from "antd";
 
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
-const API_URL = isProd ? process.env.REACT_APP_API_URL! : process.env.REACT_APP_API_URL_DEV!;
+const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:42069";
 console.log("Starting in production mode ( true | false )", isProd);
 type AppState = {
   loading: boolean;
@@ -17,25 +16,25 @@ class App extends React.Component<{}, AppState> {
   };
   async initial() {
     const urlParams = new URLSearchParams(window.location.search);
-    const votingToken = urlParams.get("votingToken");
-    if (votingToken) {
-      console.log(votingToken);
+    const authenticityToken = urlParams.get("authenticityToken");
+    if (authenticityToken) {
+      console.log(authenticityToken);
       const domain = isProd ? "konstantin-dobler.de" : "localhost";
-      document.cookie = `votingToken=${votingToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
-      window.localStorage.setItem("votingToken", votingToken);
+      document.cookie = `authenticityToken=${authenticityToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
+      window.localStorage.setItem("authenticityToken", authenticityToken);
       var uri = window.location.toString();
       if (uri.indexOf("?") > 0) {
         var clean_uri = uri.substring(0, uri.indexOf("?"));
         window.history.replaceState({}, document.title, clean_uri);
       }
     }
-    const response = await fetch(`${API_URL}/initial`, {
+    const response = await fetch(`${API_URL}/api/initial`, {
       method: "GET",
       credentials: "include",
       redirect: "follow",
     });
 
-    const jsonResponse: InitialRequestResponse = await response.json();
+    const jsonResponse = await response.json();
     console.log(jsonResponse);
 
     if (jsonResponse.authRequired) {
@@ -69,14 +68,23 @@ class App extends React.Component<{}, AppState> {
     this.setState({ loading: false });
   }
 
+  async startTakeover() {
+    const response = await fetch(`${API_URL}/api/takeover`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const jsonResponse = await response.json();
+    console.log(jsonResponse);
+  }
+
   render() {
     if (this.state.loading) return this.loadingIndicator();
     if (this.state.authenticationLink) return this.authenticationLink();
     return (
       <div style={{ padding: "1rem", textAlign: "center" }}>
-        <h1>Pick your favorite songs of today!</h1>
-        <h3>You can distribute 5 points. Choose wisely...</h3>
-        <SongVote user={this.state.user!} apiUrl={API_URL} />
+        <h1>Takeover</h1>
+        <button onClick={this.startTakeover}>Take it over!</button>
       </div>
     );
   }
