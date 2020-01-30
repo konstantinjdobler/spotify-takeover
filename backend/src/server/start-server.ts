@@ -1,5 +1,5 @@
-import SpotifyClient, { ApplicationSpotifyClient, SpotifyApiCredentials } from "../wrappers/SpotifyAPI";
-import SpotifyTakeoverServer from "./DailySongVoteServer";
+import { SpotifyClient, SpotifyApiCredentials } from "../wrappers/SpotifyAPI";
+import SpotifyTakeoverServer from "./SpotifyTakeover";
 require("dotenv").config();
 
 const developmentMode = process.env.NODE_ENV !== "production";
@@ -14,7 +14,7 @@ const spotifyCredentials: SpotifyApiCredentials = {
   redirectUri: spotifyAuthCallback,
 };
 SpotifyClient.setCredentials(spotifyCredentials);
-const spotifyAppUserClient = new ApplicationSpotifyClient(process.env.APP_USER_REFRESH_TOKEN!);
+const spotifyAppUserClient = new SpotifyClient(process.env.APP_USER_REFRESH_TOKEN!);
 
 console.log(process.env.APP_USER_REFRESH_TOKEN!);
 

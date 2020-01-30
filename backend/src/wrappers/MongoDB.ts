@@ -22,7 +22,7 @@ class MongoDBWrapper {
       spotifyUserID: spotifyUserID,
       timestamp: new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" }),
     });
-    return result != null;
+    return result !== null;
   }
   async addTakeoverEvent(spotifyUserInfo: SpotifyApi.UserObjectPublic) {
     const db = await this.connectToDB();

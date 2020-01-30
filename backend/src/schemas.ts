@@ -1,7 +1,9 @@
 export interface User {
   refreshToken: string;
-  votingToken: string;
+  authenticationToken: string;
   spotify: SpotifyApi.UserObjectPublic;
+  slaveRefreshToken?: string;
+  firstClassCitizen: boolean;
 }
 
 export type InitialRequestResponse = {

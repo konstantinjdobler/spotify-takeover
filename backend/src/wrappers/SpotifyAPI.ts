@@ -12,8 +12,8 @@ export type SpotifyApiCredentials = {
   clientSecret: string;
   redirectUri: string;
 };
-//TODO: merge spotify clients
-export default abstract class SpotifyClient {
+
+export class SpotifyClient {
   engine: SpotifyWebApi;
   static spotifyCredentials: SpotifyApiCredentials;
   static setCredentials(credentials: SpotifyApiCredentials) {
@@ -30,8 +30,7 @@ export default abstract class SpotifyClient {
   async refreshAccessToken() {
     await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
   }
-}
-export class ApplicationSpotifyClient extends SpotifyClient {
+
   async setCurrentPlayback(song: TrackURI | null) {
     await this.refreshAccessToken();
     if (!song) {
@@ -42,10 +41,11 @@ export class ApplicationSpotifyClient extends SpotifyClient {
       this.engine.play({ uris: [song] }).catch(r => console.log(r));
     }
   }
+
   async seekPositionInCurrentPlayback(postionInMS: number) {
     await this.refreshAccessToken();
     console.log(`seeking ${postionInMS} in current track`);
-    this.engine.seek(postionInMS);
+    this.engine.seek(postionInMS).catch(r => console.log(r));
   }
   async getCurrentPlayback(): Promise<SpotifyApi.CurrentlyPlayingObject> {
     await this.refreshAccessToken();
@@ -55,6 +55,11 @@ export class ApplicationSpotifyClient extends SpotifyClient {
     });
     return s!.body;
   }
+
+  async getRefreshToken(code: string) {
+    return (await this.engine.authorizationCodeGrant(code)).body.refresh_token;
+  }
+
   getAppAuthUrl() {
     return this.engine.createAuthorizeURL(
       ["user-modify-playback-state", "user-read-playback-state", "user-read-currently-playing"],
@@ -68,17 +73,6 @@ export class ApplicationSpotifyClient extends SpotifyClient {
       "useless-state",
       true,
     );
-  }
-}
-
-export class UserSpotifyClient extends SpotifyClient {
-  async getCurrentPlayback(): Promise<SpotifyApi.CurrentlyPlayingObject> {
-    await this.refreshAccessToken();
-    const s = await this.engine.getMyCurrentPlayingTrack().catch(r => {
-      console.log(r);
-      return undefined;
-    });
-    return s!.body;
   }
 
   async getUserInfo() {
