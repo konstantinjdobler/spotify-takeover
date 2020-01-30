@@ -12,13 +12,11 @@ const spotifyCredentials: SpotifyApiCredentials = {
   clientId: process.env.CLIENT_ID!,
   clientSecret: process.env.CLIENT_SECRET!,
   redirectUri: spotifyAuthCallback,
-}
-SpotifyClient.setCredentials(spotifyCredentials)
-const spotifyAppUserClient = new ApplicationSpotifyClient(
-  process.env.APP_USER_REFRESH_TOKEN!,
-);
+};
+SpotifyClient.setCredentials(spotifyCredentials);
+const spotifyAppUserClient = new ApplicationSpotifyClient(process.env.APP_USER_REFRESH_TOKEN!);
 
-console.log(process.env.APP_USER_REFRESH_TOKEN!)
+console.log(process.env.APP_USER_REFRESH_TOKEN!);
 
 const dailySongVoteServer = new SpotifyTakeoverServer(
   spotifyAppUserClient,

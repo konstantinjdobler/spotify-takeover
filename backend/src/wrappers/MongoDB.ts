@@ -9,25 +9,35 @@ class MongoDBWrapper {
   }
 
   async connectToDB() {
+    // TODO: optimize, don't always create new connection
     return MongoClient.connect(this.mongoConnectionString).then(client => {
       if (!client) throw new Error("error connecting to mongo - client undefined");
-      return client.db("daily-song-vote");
+      return client.db("spotify-takeover");
     });
   }
-  async addTakeoverEvent(authenticityToken: string) {
+
+  async userHasAlreadyHadTakeoverToday(spotifyUserID: string) {
     const db = await this.connectToDB();
-    const user = await db.collection("users").findOne({ authenticityToken: authenticityToken }) as User;
+    const result = await db.collection<TakeoverEvent>("takeoverEvents").findOne({
+      spotifyUserID: spotifyUserID,
+      timestamp: new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" }),
+    });
+    return result != null;
+  }
+  async addTakeoverEvent(spotifyUserInfo: SpotifyApi.UserObjectPublic) {
+    const db = await this.connectToDB();
     const takeoverEvent: TakeoverEvent = {
       timestamp: new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" }),
-      userID: user.user.id,
-      orderedSongs: []
+      spotifyUserID: spotifyUserInfo.id,
+      orderedSongs: [],
     };
 
-    const result = await db
-      .collection("takeoverEvents")
-      .insertOne(takeoverEvent);
+    const result = await db.collection("takeoverEvents").insertOne(takeoverEvent);
 
-    console.log("Added new takeover event for user:" + user.user.display_name || user.user.id + ". MongoDB result:", result.result.ok);
+    console.log(
+      "Added new takeover event for user:" + spotifyUserInfo.display_name || spotifyUserInfo.id + ". MongoDB result:",
+      result.result.ok,
+    );
   }
 
   async getUserForToken(authenticityToken: string): Promise<User | null> {
@@ -40,13 +50,12 @@ class MongoDBWrapper {
     const operation = await db
       .collection("users")
       .replaceOne(
-        { "user.id": userInfo.id },
-        { authenticityToken: authenticityToken, user: userInfo, refreshToken: refreshToken },
+        { "spotify.id": userInfo.id },
+        { authenticityToken: authenticityToken, spotify: userInfo, refreshToken: refreshToken },
         { upsert: true },
       );
     console.log("Added new user " + userInfo.id + ". MongoDB result:", operation.result.ok);
   }
-
 }
 
 const Persistence = new MongoDBWrapper();

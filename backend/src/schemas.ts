@@ -1,8 +1,7 @@
-
 export interface User {
   refreshToken: string;
   votingToken: string;
-  user: SpotifyApi.UserObjectPublic;
+  spotify: SpotifyApi.UserObjectPublic;
 }
 
 export type InitialRequestResponse = {
@@ -11,12 +10,12 @@ export type InitialRequestResponse = {
 };
 
 export type TakeoverEvent = {
-  userID: string;
+  spotifyUserID: string;
   timestamp: string;
-  orderedSongs: PlaybackEvent[]
-}
-export type TrackURI = string
+  orderedSongs: PlaybackEvent[];
+};
+export type TrackURI = string;
 export type PlaybackEvent = {
-  song: TrackURI
-  duration: number
-}
+  song: TrackURI;
+  duration: number;
+};
