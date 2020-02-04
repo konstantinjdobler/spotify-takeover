@@ -1,5 +1,15 @@
 import React from "react";
-import { Button, CircularProgress, Card, Typography, CardContent, CardActions, Paper } from "@material-ui/core";
+import {
+  Button,
+  CircularProgress,
+  Typography,
+  CardContent,
+  CardActions,
+  Paper,
+  TextField,
+  Card,
+  Input,
+} from "@material-ui/core";
 
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
 const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:42069";
@@ -8,6 +18,7 @@ type AppState = {
   loading: boolean;
   authenticationLink?: string;
   user?: SpotifyApi.UserObjectPublic;
+  secretState?: boolean;
 };
 class App extends React.Component<{}, AppState> {
   state: AppState = {
@@ -49,6 +60,10 @@ class App extends React.Component<{}, AppState> {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get("action");
     let initialRequestModifier = "";
+    if (action === "create-signup-link") {
+      this.setState({ loading: false, secretState: true });
+      return;
+    }
     if (action) initialRequestModifier = this.actionMapper[action](urlParams) || "";
     await this.initial(initialRequestModifier);
     this.setState({ loading: false });
@@ -120,6 +135,7 @@ class App extends React.Component<{}, AppState> {
   render() {
     if (this.state.loading) return this.loadingIndicator();
     if (this.state.authenticationLink) return this.authenticationLink();
+    if (this.state.secretState) return <CreateSignupLink />;
     return (
       <div style={{ padding: "1rem", textAlign: "center" }}>
         <h1>Takeover</h1>
@@ -130,5 +146,26 @@ class App extends React.Component<{}, AppState> {
     );
   }
 }
-
+class CreateSignupLink extends React.Component<{}, { name: string }> {
+  state = {
+    name: "",
+  };
+  render() {
+    return (
+      <Card style={{ maxWidth: "600px", margin: "auto" }}>
+        <CardContent>
+          <TextField
+            size="medium"
+            label="Name"
+            value={this.state.name}
+            onChange={e => this.setState({ name: e.target.value })}
+          />
+        </CardContent>
+        <CardActions>
+          <Button href={`${API_URL}/api/create-signup-link?name=${this.state.name}`}>Create Link</Button>
+        </CardActions>
+      </Card>
+    );
+  }
+}
 export default App;
