@@ -1,6 +1,5 @@
 import React from "react";
-import SongVote from "./SongVote";
-import { Icon, Result, Button } from "antd";
+import { Button, CircularProgress, Card, Typography, CardContent, CardActions, Paper } from "@material-ui/core";
 
 const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
 const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:42069";
@@ -14,21 +13,49 @@ class App extends React.Component<{}, AppState> {
   state: AppState = {
     loading: true,
   };
-  async initial() {
-    const urlParams = new URLSearchParams(window.location.search);
+
+  actionMapper: { [actionString: string]: (urlParams: URLSearchParams) => void | string } = {
+    "signup-successful": this.signupSuccessfulAction,
+    "login-successful": this.signupSuccessfulAction,
+    "complete-signup": this.completeSignupAction,
+  };
+
+  signupSuccessfulAction(urlParams: URLSearchParams) {
     const authenticityToken = urlParams.get("authenticityToken");
-    if (authenticityToken) {
-      console.log(authenticityToken);
-      const domain = isProd ? "konstantin-dobler.de" : "localhost";
-      document.cookie = `authenticityToken=${authenticityToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
-      window.localStorage.setItem("authenticityToken", authenticityToken);
-      var uri = window.location.toString();
-      if (uri.indexOf("?") > 0) {
-        var clean_uri = uri.substring(0, uri.indexOf("?"));
-        window.history.replaceState({}, document.title, clean_uri);
-      }
+    if (!authenticityToken) {
+      console.error("No authenticity token found!");
+      return;
     }
-    const response = await fetch(`${API_URL}/api/initial`, {
+    const domain = isProd ? "konstantin-dobler.de" : "localhost";
+    document.cookie = `authenticityToken=${authenticityToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
+    //window.localStorage.setItem("authenticityToken", authenticityToken);
+    var uri = window.location.toString();
+    if (uri.indexOf("?") > 0) {
+      var clean_uri = uri.substring(0, uri.indexOf("?"));
+      window.history.replaceState({}, document.title, clean_uri);
+    }
+  }
+
+  completeSignupAction(urlParams: URLSearchParams) {
+    const tempCode = urlParams.get("tempCode");
+    if (!tempCode) {
+      console.error("No tempCode token found!");
+      return;
+    }
+    return `?tempCode=${tempCode}`;
+  }
+
+  async componentDidMount() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get("action");
+    let initialRequestModifier = "";
+    if (action) initialRequestModifier = this.actionMapper[action](urlParams) || "";
+    await this.initial(initialRequestModifier);
+    this.setState({ loading: false });
+  }
+
+  async initial(requestModifer: string) {
+    const response = await fetch(`${API_URL}/api/initial${requestModifer}`, {
       method: "GET",
       credentials: "include",
       redirect: "follow",
@@ -55,17 +82,29 @@ class App extends React.Component<{}, AppState> {
           alignItems: "center",
         }}
       >
-        <Icon type="loading" style={{ fontSize: "100px" }} />
+        <CircularProgress size={100} />
       </div>
     );
   }
 
   authenticationLink() {
-    return <a href={this.state.authenticationLink}>Click here for Authentication</a>;
-  }
-  async componentDidMount() {
-    await this.initial();
-    this.setState({ loading: false });
+    return (
+      <Paper style={{ maxWidth: "600px", margin: "auto" }}>
+        <CardContent>
+          <Typography variant="h5" color="textPrimary">
+            Oh no, you are not logged in or signed up!
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
+            Don't worry, it's really easy. Click on the button below and authenticate with Spotify - you're ready to go!
+          </Typography>
+        </CardContent>
+        <CardActions>
+          <Button style={{ color: "white", backgroundColor: "#1DB954" }} href={this.state.authenticationLink}>
+            Authenticate with Spotify
+          </Button>
+        </CardActions>
+      </Paper>
+    );
   }
 
   async startTakeover() {
@@ -84,7 +123,9 @@ class App extends React.Component<{}, AppState> {
     return (
       <div style={{ padding: "1rem", textAlign: "center" }}>
         <h1>Takeover</h1>
-        <button onClick={this.startTakeover}>Take it over!</button>
+        <Button variant="contained" onClick={this.startTakeover}>
+          Take it over!
+        </Button>
       </div>
     );
   }

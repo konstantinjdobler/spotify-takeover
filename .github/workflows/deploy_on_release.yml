@@ -18,7 +18,6 @@ jobs:
           timeout: 10m
           command_timeout: 15m
           script: |
-
             echo "Shutting down server"
             cd ~/projects/daily-song-vote/backend
             docker-compose down
@@ -33,6 +32,8 @@ jobs:
             echo "Updating frontend dependencies"
             npm i --only=production
             echo "Running frontend build"
+            export TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling
+
             npm run build
 
             echo "Updating backend"

@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { User, TakeoverEvent } from "../schemas";
+import { User, TakeoverEvent, Temp } from "../schemas";
 require("dotenv").config();
 
 class MongoDBWrapper {
@@ -32,7 +32,7 @@ class MongoDBWrapper {
       orderedSongs: [],
     };
 
-    const result = await db.collection("takeoverEvents").insertOne(takeoverEvent);
+    const result = await db.collection<TakeoverEvent>("takeoverEvents").insertOne(takeoverEvent);
 
     console.log(
       "Added new takeover event for user:" + spotifyUserInfo.display_name || spotifyUserInfo.id + ". MongoDB result:",
@@ -40,18 +40,36 @@ class MongoDBWrapper {
     );
   }
 
-  async getUserForToken(authenticityToken: string): Promise<User | null> {
+  async addTemp(tempCode: string, name: string) {
     const db = await this.connectToDB();
-    return db.collection("users").findOne({ authenticityToken: authenticityToken });
+    db.collection<Temp>("temp").insertOne({ tempCode, name, used: false });
   }
 
-  async addUser(authenticityToken: string, userInfo: SpotifyApi.UserObjectPublic, refreshToken: string) {
+  async validateTempCode(tempCode: string) {
+    const db = await this.connectToDB();
+    return db
+      .collection<Temp>("temp")
+      .findOneAndUpdate({ tempCode, used: false }, { $set: { used: true } })
+      .then(result => result.value);
+  }
+
+  async userForSpotifyID(spotifyID: string) {
+    const db = await this.connectToDB();
+    return db.collection<User>("users").findOne({ "spotify.id": spotifyID });
+  }
+
+  async getUserForToken(authenticityToken: string): Promise<User | null> {
+    const db = await this.connectToDB();
+    return db.collection<User>("users").findOne({ authenticityToken: authenticityToken });
+  }
+
+  async addUser(authenticityToken: string, userInfo: SpotifyApi.UserObjectPublic, refreshToken: string, name: string) {
     const db = await this.connectToDB();
     const operation = await db
-      .collection("users")
+      .collection<User>("users")
       .replaceOne(
         { "spotify.id": userInfo.id },
-        { authenticityToken: authenticityToken, spotify: userInfo, refreshToken: refreshToken },
+        { authenticityToken, spotify: userInfo, refreshToken, name },
         { upsert: true },
       );
     console.log("Added new user " + userInfo.id + ". MongoDB result:", operation.result.ok);

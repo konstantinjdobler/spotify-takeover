@@ -2,6 +2,7 @@ import express from "express";
 import { Application, Response as ExpressResponse } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import basicAuth from "express-basic-auth";
 import { setIntervalAsync, clearIntervalAsync } from "set-interval-async/dynamic";
 
 import { SpotifyClient } from "../wrappers/SpotifyAPI";
@@ -36,6 +37,7 @@ export default class SpotifyTakeoverServer {
   initExpressApp() {
     this.app.use(express.json());
     this.app.use(cookieParser());
+    this.app.use("/api/create-signup-link", basicAuth({ challenge: true, users: { admin: "admin" } }));
     this.app.use(
       cors({
         origin: this.frontendUrl,
@@ -65,22 +67,43 @@ export default class SpotifyTakeoverServer {
     }
   };
   initRoutes() {
+    this.app.get("/api/create-signup-link", async (req, res) => {
+      // TODO: basix auth
+      const name = req.query.name;
+      const tempCode = makeID(20);
+
+      // persist
+      Persistence.addTemp(tempCode, name);
+
+      res.status(200).send(`${this.frontendUrl}?action=complete-signup&tempCode=${tempCode}`);
+    });
+
     this.app.get("/api/after-spotify-auth", async (req, res) => {
       const code = req.query.code;
       console.log("Retrieved authorization code from spotify: ", code);
       const refreshToken = await this.applicationSpotify.getRefreshToken(code);
       console.log("Retrieved refresh token from spotify: ", refreshToken);
       if (req.query.state === "app-user") return;
-
+      console.log(req.query.state);
+      const validTempInfo = await Persistence.validateTempCode(req.query.state);
       const userInfo = await new SpotifyClient(refreshToken).getUserInfo();
-      // if (!this.spotifyUserWhitelist.includes(userInfo.id)) {
-      //   console.log("Unauthorized user attempted to login", userInfo);
-      //   res.status(401).send({ error: "Unauthorized user, sucker" });
-      // }
-      const votingToken = makeID(10);
-      await Persistence.addUser(votingToken, userInfo, refreshToken);
-      console.log("Sending new authenticityToken with response", votingToken);
-      res.redirect(this.frontendUrl + "?authenticityToken=" + votingToken);
+      if (validTempInfo) {
+        const authenticityToken = makeID(10);
+        await Persistence.addUser(authenticityToken, userInfo, refreshToken, validTempInfo.name);
+        console.log("Sending new authenticityToken with response", authenticityToken);
+        res.redirect(this.frontendUrl + "?action=signup-successful&authenticityToken=" + authenticityToken);
+        return;
+      }
+      const previouslyKnownUser = await Persistence.userForSpotifyID(userInfo.id);
+      if (previouslyKnownUser) {
+        console.log("Previously known user logging in");
+        res.redirect(
+          this.frontendUrl + "?action=login-successful&authenticityToken=" + previouslyKnownUser.authenticityToken,
+        );
+      } else {
+        console.log("Invalid tempCode for unkown user");
+        res.redirect(this.frontendUrl + "?action=signup-error");
+      }
     });
 
     this.app.get("/api/takeover", async (req, res) => {
@@ -115,24 +138,20 @@ export default class SpotifyTakeoverServer {
     });
 
     this.app.get("/api/initial", async (req, res) => {
-      const authenticityToken = req.cookies.authenticityToken;
-      if (!authenticityToken) {
-        console.log("Initial request without authenticityToken, sending authentication link");
-        const spotifyAuthUrl = this.applicationSpotify.getUserAuthUrl();
-        console.log("Spotify Auth url: ", spotifyAuthUrl);
-        res.status(200).send({ authRequired: spotifyAuthUrl });
-        return;
+      const authenticityToken = req.cookies.authenticityToken as string | null;
+      const tempCode = req.query.tempCode as string | null;
+      if (authenticityToken) {
+        const authenticatedUser = await Persistence.getUserForToken(authenticityToken);
+        if (authenticatedUser) {
+          console.log("User authenticated", authenticatedUser.spotify.display_name);
+          res.status(200).send({ ok: "ok", user: authenticatedUser.spotify });
+          return;
+        }
       }
-      const authenticatedUser = await Persistence.getUserForToken(authenticityToken);
-      if (authenticatedUser) {
-        console.log("User authenticated", authenticatedUser.spotify.display_name);
-        res.status(200).send({ ok: "ok", user: authenticatedUser.spotify });
-      } else {
-        console.log("Initial Request with invalid authenticity, sending authentication link", authenticityToken);
-        const spotifyAuthUrl = this.applicationSpotify.getUserAuthUrl();
-        console.log("Spotify Auth url: ", spotifyAuthUrl);
-        res.status(200).send({ authRequired: spotifyAuthUrl });
-      }
+      console.log("Initial request without authenticityToken, sending authentication link");
+      const spotifyAuthUrl = this.applicationSpotify.getUserAuthUrl(tempCode || "no-code-provided");
+      console.log("Spotify Auth url: ", spotifyAuthUrl);
+      res.status(200).send({ authRequired: spotifyAuthUrl });
     });
   }
 }

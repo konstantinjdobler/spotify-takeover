@@ -67,12 +67,8 @@ export class SpotifyClient {
       true,
     );
   }
-  getUserAuthUrl() {
-    return this.engine.createAuthorizeURL(
-      ["user-read-currently-playing", "user-read-playback-state"],
-      "useless-state",
-      true,
-    );
+  getUserAuthUrl(tempCode: string) {
+    return this.engine.createAuthorizeURL(["user-read-currently-playing", "user-read-playback-state"], tempCode, true);
   }
 
   async getUserInfo() {

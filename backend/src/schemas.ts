@@ -1,9 +1,15 @@
 export interface User {
   refreshToken: string;
-  authenticationToken: string;
+  authenticityToken: string;
   spotify: SpotifyApi.UserObjectPublic;
   slaveRefreshToken?: string;
-  firstClassCitizen: boolean;
+  name: string;
+}
+
+export interface Temp {
+  tempCode: string;
+  name: string;
+  used: boolean;
 }
 
 export type InitialRequestResponse = {
