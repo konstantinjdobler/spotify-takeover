@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const developmentMode = process.env.NODE_ENV !== "production";
 
-const developRedirectUri = "https://mousiki1234.tunnel.datahub.at/api/after-spotify-auth";
+const developRedirectUri = "https://mousiki1234567.tunnel.datahub.at/api/after-spotify-auth";
 const spotifyAuthCallback = developmentMode ? developRedirectUri : process.env.REDIRECT_URI!;
 const frontendUrl = developmentMode ? "http://localhost:3000" : process.env.FRONTEND_URL!;
 
@@ -18,11 +18,6 @@ const spotifyAppUserClient = new SpotifyClient(process.env.APP_USER_REFRESH_TOKE
 
 console.log(process.env.APP_USER_REFRESH_TOKEN!);
 
-const dailySongVoteServer = new SpotifyTakeoverServer(
-  spotifyAppUserClient,
-  spotifyAuthCallback,
-  frontendUrl,
-  developmentMode,
-);
+const dailySongVoteServer = new SpotifyTakeoverServer(spotifyAppUserClient, frontendUrl, developmentMode);
 
 dailySongVoteServer.start(parseInt(process.env.PORT!));

@@ -63,6 +63,21 @@ class MongoDBWrapper {
     return db.collection<User>("users").findOne({ authenticityToken: authenticityToken });
   }
 
+  async addSlaveRefreshTokenToUser(authenticityToken: string, slaveRefreshToken: string) {
+    const db = await this.connectToDB();
+    return db.collection<User>("users").updateOne({ authenticityToken }, { $set: { slaveRefreshToken } });
+  }
+
+  async addMasterRefreshTokenToUser(authenticityToken: string, masterRefreshToken: string) {
+    const db = await this.connectToDB();
+    return db.collection<User>("users").updateOne({ authenticityToken }, { $set: { masterRefreshToken } });
+  }
+
+  async updateUser(authenticityToken: string, update: Partial<User>) {
+    const db = await this.connectToDB();
+    return db.collection<User>("users").updateOne({ authenticityToken }, update);
+  }
+
   async addUser(authenticityToken: string, userInfo: SpotifyApi.UserObjectPublic, refreshToken: string, name: string) {
     const db = await this.connectToDB();
     const operation = await db

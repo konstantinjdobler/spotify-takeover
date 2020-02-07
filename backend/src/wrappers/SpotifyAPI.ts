@@ -1,5 +1,5 @@
 import SpotifyWebApi from "spotify-web-api-node";
-import { TrackURI } from "src/schemas";
+import { TrackURI, SpotifyCallbackState } from "src/schemas";
 
 function isToday(utcDate: Date) {
   const today = new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" });
@@ -26,6 +26,9 @@ export class SpotifyClient {
     this.engine.setRefreshToken(refreshToken);
   }
 
+  static with(refreshToken: string) {
+    return new SpotifyClient(refreshToken);
+  }
   //TODO: implement refreshing only when necessary
   async refreshAccessToken() {
     await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
@@ -49,7 +52,7 @@ export class SpotifyClient {
   }
   async getCurrentPlayback(): Promise<SpotifyApi.CurrentlyPlayingObject> {
     await this.refreshAccessToken();
-    const s = await this.engine.getMyCurrentPlayingTrack().catch(r => {
+    const s = await this.engine.getMyCurrentPlaybackState().catch(r => {
       console.log(r);
       return undefined;
     });
@@ -60,15 +63,30 @@ export class SpotifyClient {
     return (await this.engine.authorizationCodeGrant(code)).body.refresh_token;
   }
 
-  getAppAuthUrl() {
+  async getAvailableDevices() {
+    await this.refreshAccessToken();
+    return (await this.engine.getMyDevices()).body.devices;
+  }
+
+  getSlaveAuthUrl(authenticityToken: string) {
+    const state: SpotifyCallbackState = { slaveScope: true, authenticityToken };
     return this.engine.createAuthorizeURL(
       ["user-modify-playback-state", "user-read-playback-state", "user-read-currently-playing"],
-      "app-user",
+      JSON.stringify(state),
       true,
     );
   }
-  getUserAuthUrl(tempCode: string) {
-    return this.engine.createAuthorizeURL(["user-read-currently-playing", "user-read-playback-state"], tempCode, true);
+  getUserSignupUrl(tempCode: string) {
+    const state: SpotifyCallbackState = { tempCode, basicScope: true };
+    return this.engine.createAuthorizeURL(["user-read-email"], JSON.stringify(state), true);
+  }
+  getMasterAuthUrl(authenticityToken: string) {
+    const state: SpotifyCallbackState = { authenticityToken, masterScope: true };
+    return this.engine.createAuthorizeURL(
+      ["user-read-currently-playing", "user-read-playback-state"],
+      JSON.stringify(state),
+      true,
+    );
   }
 
   async getUserInfo() {

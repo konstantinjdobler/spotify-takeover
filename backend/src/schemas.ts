@@ -3,6 +3,7 @@ export interface User {
   authenticityToken: string;
   spotify: SpotifyApi.UserObjectPublic;
   slaveRefreshToken?: string;
+  masterRefreshToken?: string;
   name: string;
 }
 
@@ -11,11 +12,6 @@ export interface Temp {
   name: string;
   used: boolean;
 }
-
-export type InitialRequestResponse = {
-  authRequired?: string;
-  user?: SpotifyApi.UserObjectPublic;
-};
 
 export type TakeoverEvent = {
   spotifyUserID: string;
@@ -27,3 +23,26 @@ export type PlaybackEvent = {
   song: TrackURI;
   duration: number;
 };
+
+export type SpotifyCallbackState =
+  | {
+      masterScope: true;
+      slaveScope?: never;
+      basicScope?: never;
+      authenticityToken: string;
+      tempCode?: never;
+    }
+  | {
+      masterScope?: never;
+      slaveScope: true;
+      basicScope?: never;
+      authenticityToken: string;
+      tempCode?: never;
+    }
+  | {
+      masterScope?: never;
+      slaveScope?: never;
+      basicScope: true;
+      authenticityToken?: never;
+      tempCode: string;
+    };

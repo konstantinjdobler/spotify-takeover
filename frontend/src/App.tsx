@@ -1,34 +1,29 @@
 import React from "react";
-import {
-  Button,
-  CircularProgress,
-  Typography,
-  CardContent,
-  CardActions,
-  Paper,
-  TextField,
-  Card,
-  Input,
-} from "@material-ui/core";
+import { CircularProgress, Grid, Snackbar } from "@material-ui/core";
+import { Alert } from "@material-ui/lab";
+import CreateSignupLink from "./CreateSignupLink";
+import CurrentRoadtripDevice from "./CurrentRoadtripDevice";
+import { removeActionFromUrl, isProd, API_URL } from "./utils";
+import AuthenticationLink from "./AuthenticationPage";
+import SetDeviceCard from "./SetDeviceCard";
+import Takeovercard from "./TakeoverCard";
+import { InitialRequestResponse, authRequired, isOK } from "./sharedTypes";
 
-const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
-const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:42069";
 console.log("Starting in production mode ( true | false )", isProd);
 type AppState = {
   loading: boolean;
   authenticationLink?: string;
-  user?: SpotifyApi.UserObjectPublic;
+  masterPermissionLink?: string;
+  slavePermissionLink?: string;
+  user?: { name: string; spotify: SpotifyApi.UserObjectPublic };
+  activeTakeoverUser?: { name: string; id: string };
   secretState?: boolean;
+  toast?: JSX.Element;
+  playbackInfo?: SpotifyApi.CurrentlyPlayingObject;
 };
 class App extends React.Component<{}, AppState> {
   state: AppState = {
     loading: true,
-  };
-
-  actionMapper: { [actionString: string]: (urlParams: URLSearchParams) => void | string } = {
-    "signup-successful": this.signupSuccessfulAction,
-    "login-successful": this.signupSuccessfulAction,
-    "complete-signup": this.completeSignupAction,
   };
 
   signupSuccessfulAction(urlParams: URLSearchParams) {
@@ -39,12 +34,6 @@ class App extends React.Component<{}, AppState> {
     }
     const domain = isProd ? "konstantin-dobler.de" : "localhost";
     document.cookie = `authenticityToken=${authenticityToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
-    //window.localStorage.setItem("authenticityToken", authenticityToken);
-    var uri = window.location.toString();
-    if (uri.indexOf("?") > 0) {
-      var clean_uri = uri.substring(0, uri.indexOf("?"));
-      window.history.replaceState({}, document.title, clean_uri);
-    }
   }
 
   completeSignupAction(urlParams: URLSearchParams) {
@@ -56,6 +45,23 @@ class App extends React.Component<{}, AppState> {
     return `?tempCode=${tempCode}`;
   }
 
+  permissionGrantedAction = (urlParams: URLSearchParams) => {
+    const alert = (
+      <Alert severity="success" onClose={this.closeToast}>
+        Permission granted!
+      </Alert>
+    );
+    this.setState({ toast: alert });
+  };
+
+  actionMapper: { [actionString: string]: (urlParams: URLSearchParams) => void | string } = {
+    "signup-successful": this.signupSuccessfulAction,
+    "login-successful": this.signupSuccessfulAction,
+    "complete-signup": this.completeSignupAction,
+    "permission-granted": this.permissionGrantedAction,
+    "signup-error": useless => {},
+  };
+
   async componentDidMount() {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get("action");
@@ -64,7 +70,10 @@ class App extends React.Component<{}, AppState> {
       this.setState({ loading: false, secretState: true });
       return;
     }
-    if (action) initialRequestModifier = this.actionMapper[action](urlParams) || "";
+    if (action) {
+      initialRequestModifier = this.actionMapper[action](urlParams) || "";
+      removeActionFromUrl();
+    }
     await this.initial(initialRequestModifier);
     this.setState({ loading: false });
   }
@@ -76,96 +85,67 @@ class App extends React.Component<{}, AppState> {
       redirect: "follow",
     });
 
-    const jsonResponse = await response.json();
-    console.log(jsonResponse);
+    const res: InitialRequestResponse = await response.json();
+    console.log(res);
 
-    if (jsonResponse.authRequired) {
-      this.setState({ authenticationLink: jsonResponse.authRequired });
-    } else {
-      this.setState({ authenticationLink: undefined, user: jsonResponse.user });
+    if (authRequired(res)) {
+      this.setState({ authenticationLink: res.authRequired });
+    } else if (isOK(res)) {
+      this.setState({
+        authenticationLink: undefined,
+        user: res.user,
+        masterPermissionLink: res.masterPermissionLink,
+        slavePermissionLink: res.slavePermissionLink,
+        playbackInfo: res.playback,
+        activeTakeoverUser: res.activeTakeoverUser,
+      });
     }
   }
 
   loadingIndicator() {
     return (
-      <div
-        style={{
-          marginTop: "2%",
-          marginBottom: "2%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <CircularProgress size={100} />
-      </div>
+      <Grid container justify="center">
+        <Grid item>
+          <CircularProgress size={100} />
+        </Grid>
+      </Grid>
     );
   }
 
-  authenticationLink() {
-    return (
-      <Paper style={{ maxWidth: "600px", margin: "auto" }}>
-        <CardContent>
-          <Typography variant="h5" color="textPrimary">
-            Oh no, you are not logged in or signed up!
-          </Typography>
-          <Typography variant="body1" color="textSecondary">
-            Don't worry, it's really easy. Click on the button below and authenticate with Spotify - you're ready to go!
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button style={{ color: "white", backgroundColor: "#1DB954" }} href={this.state.authenticationLink}>
-            Authenticate with Spotify
-          </Button>
-        </CardActions>
-      </Paper>
-    );
-  }
-
-  async startTakeover() {
-    const response = await fetch(`${API_URL}/api/takeover`, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    const jsonResponse = await response.json();
-    console.log(jsonResponse);
-  }
+  closeToast = () => {
+    this.setState({ toast: undefined });
+  };
 
   render() {
     if (this.state.loading) return this.loadingIndicator();
-    if (this.state.authenticationLink) return this.authenticationLink();
+    if (this.state.authenticationLink) return <AuthenticationLink authenticationLink={this.state.authenticationLink} />;
     if (this.state.secretState) return <CreateSignupLink />;
     return (
-      <div style={{ padding: "1rem", textAlign: "center" }}>
-        <h1>Takeover</h1>
-        <Button variant="contained" onClick={this.startTakeover}>
-          Take it over!
-        </Button>
-      </div>
-    );
-  }
-}
-class CreateSignupLink extends React.Component<{}, { name: string }> {
-  state = {
-    name: "",
-  };
-  render() {
-    return (
-      <Card style={{ maxWidth: "600px", margin: "auto" }}>
-        <CardContent>
-          <TextField
-            size="medium"
-            label="Name"
-            value={this.state.name}
-            onChange={e => this.setState({ name: e.target.value })}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6}>
+          <CurrentRoadtripDevice playbackInfo={this.state.playbackInfo} />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Takeovercard
+            masterPermissionLink={this.state.masterPermissionLink}
+            activeTakeoverUser={this.state.activeTakeoverUser}
+            currentUserId={this.state.user?.spotify.id}
           />
-        </CardContent>
-        <CardActions>
-          <Button href={`${API_URL}/api/create-signup-link?name=${this.state.name}`}>Create Link</Button>
-        </CardActions>
-      </Card>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <SetDeviceCard slavePermissionLink={this.state.slavePermissionLink} />
+        </Grid>
+        <Snackbar
+          open={!!this.state.toast}
+          autoHideDuration={3000}
+          onClose={e => this.closeToast()}
+          style={{ marginBottom: "5px" }}
+        >
+          {this.state.toast}
+        </Snackbar>
+      </Grid>
     );
   }
 }
+
 export default App;
