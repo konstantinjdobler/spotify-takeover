@@ -1,13 +1,13 @@
 import React from "react";
 import { CircularProgress, Grid, Snackbar } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
-import CreateSignupLink from "./CreateSignupLink";
-import CurrentRoadtripDevice from "./CurrentRoadtripDevice";
+import CreateSignupLink from "./Components/CreateSignupLink";
+import CurrentRoadtripDevice from "./Components/CurrentRoadtripDevice";
 import { removeActionFromUrl, isProd, API_URL } from "./utils";
-import AuthenticationLink from "./AuthenticationPage";
-import SetDeviceCard from "./SetDeviceCard";
-import Takeovercard from "./TakeoverCard";
-import { InitialRequestResponse, authRequired, isOK } from "./sharedTypes";
+import AuthenticationLink from "./Components/AuthenticationPage";
+import SetDeviceCard from "./Components/SetDeviceCard";
+import Takeovercard from "./Components/TakeoverCard";
+import { InitialRequestResponse, authRequired, isOK, actions, routes } from "./sharedTypes";
 
 console.log("Starting in production mode ( true | false )", isProd);
 type AppState = {
@@ -19,6 +19,7 @@ type AppState = {
   activeTakeoverUser?: { name: string; id: string };
   secretState?: boolean;
   toast?: JSX.Element;
+  alert?: JSX.Element;
   playbackInfo?: SpotifyApi.CurrentlyPlayingObject;
 };
 class App extends React.Component<{}, AppState> {
@@ -36,7 +37,7 @@ class App extends React.Component<{}, AppState> {
     document.cookie = `authenticityToken=${authenticityToken};path=/;expires=Tue, 19 Jan 2038 03:14:07 UTC;domain=${domain}`;
   }
 
-  completeSignupAction(urlParams: URLSearchParams) {
+  startSignupAction(urlParams: URLSearchParams) {
     const tempCode = urlParams.get("tempCode");
     if (!tempCode) {
       console.error("No tempCode token found!");
@@ -55,18 +56,18 @@ class App extends React.Component<{}, AppState> {
   };
 
   actionMapper: { [actionString: string]: (urlParams: URLSearchParams) => void | string } = {
-    "signup-successful": this.signupSuccessfulAction,
-    "login-successful": this.signupSuccessfulAction,
-    "complete-signup": this.completeSignupAction,
-    "permission-granted": this.permissionGrantedAction,
-    "signup-error": useless => {},
+    [actions.signupSuccessful]: this.signupSuccessfulAction,
+    [actions.loginSuccessful]: this.signupSuccessfulAction,
+    [actions.startSignup]: this.startSignupAction,
+    [actions.permissionGranted]: this.permissionGrantedAction,
+    [actions.signupError]: useless => {},
   };
 
   async componentDidMount() {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get("action");
     let initialRequestModifier = "";
-    if (action === "create-signup-link") {
+    if (action === actions.createSignupLink) {
       this.setState({ loading: false, secretState: true });
       return;
     }
@@ -79,7 +80,7 @@ class App extends React.Component<{}, AppState> {
   }
 
   async initial(requestModifer: string) {
-    const response = await fetch(`${API_URL}/api/initial${requestModifer}`, {
+    const response = await fetch(API_URL + routes.initial + requestModifer, {
       method: "GET",
       credentials: "include",
       redirect: "follow",

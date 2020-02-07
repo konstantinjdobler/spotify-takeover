@@ -40,9 +40,9 @@ class MongoDBWrapper {
     );
   }
 
-  async addTemp(tempCode: string, name: string) {
+  async addTemp(tempCode: string, name: string, isRoadtripParticipant: boolean) {
     const db = await this.connectToDB();
-    db.collection<Temp>("temp").insertOne({ tempCode, name, used: false });
+    db.collection<Temp>("temp").insertOne({ tempCode, name, isRoadtripParticipant, used: false });
   }
 
   async validateTempCode(tempCode: string) {
@@ -78,13 +78,19 @@ class MongoDBWrapper {
     return db.collection<User>("users").updateOne({ authenticityToken }, update);
   }
 
-  async addUser(authenticityToken: string, userInfo: SpotifyApi.UserObjectPublic, refreshToken: string, name: string) {
+  async addUser(
+    authenticityToken: string,
+    userInfo: SpotifyApi.UserObjectPublic,
+    refreshToken: string,
+    name: string,
+    isRoadtripParticipant: boolean,
+  ) {
     const db = await this.connectToDB();
     const operation = await db
       .collection<User>("users")
       .replaceOne(
         { "spotify.id": userInfo.id },
-        { authenticityToken, spotify: userInfo, refreshToken, name },
+        { authenticityToken, spotify: userInfo, refreshToken, name, isRoadtripParticipant },
         { upsert: true },
       );
     console.log("Added new user " + userInfo.id + ". MongoDB result:", operation.result.ok);

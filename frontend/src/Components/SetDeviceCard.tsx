@@ -1,10 +1,11 @@
 import React from "react";
 import { Card, Typography, CardActions, Button, CardContent } from "@material-ui/core";
-import { API_URL } from "./utils";
+import { API_URL } from "../utils";
+import { routes } from "../sharedTypes";
 
 export default function SetDeviceCard(props: { slavePermissionLink?: string }) {
   async function changeDevice() {
-    const response = await fetch(`${API_URL}/api/change-roadtrip-device`, {
+    const response = await fetch(`${API_URL}${routes.changeRoadtripDevice}`, {
       method: "GET",
       credentials: "include",
     });

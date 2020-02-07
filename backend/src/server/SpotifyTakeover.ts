@@ -13,6 +13,7 @@ import { initChangeRoadtripDevice } from "./routes/changeRoadtripDevice";
 import { initInitialRoute } from "./routes/initial";
 import { initTakeover, initStopTakeover } from "./routes/takeover";
 import { initAfterSpotifyAuth } from "./routes/afterSpotifyAuth";
+import { actions, routes } from "src/sharedTypes";
 require("dotenv").config();
 
 export default class SpotifyTakeoverServer {
@@ -38,7 +39,7 @@ export default class SpotifyTakeoverServer {
   initExpressApp() {
     this.app.use(express.json());
     this.app.use(cookieParser());
-    this.app.use("/api/create-signup-link", basicAuth({ challenge: true, users: { admin: "admin" } }));
+    this.app.use(routes.createSignupLink, basicAuth({ challenge: true, users: { admin: "admin" } }));
     this.app.use(
       cors({
         origin: this.frontendUrl,
@@ -49,29 +50,22 @@ export default class SpotifyTakeoverServer {
   }
 
   /// ##### Route Handlers ###### ///
-  routes = {
-    changeRoadtripDevice: "/api/change-roadtrip-device",
-    afterSpotifyAuth: "/api/after-spotify-auth",
-    takeover: "/api/takeover",
-    stopTakeover: "/api/stop-takeover",
-    initial: "/api/initial",
-    createSignupLink: "/api/create-signup-link",
-  };
+
   initRoutes() {
-    this.app.get(this.routes.createSignupLink, async (req, res) => {
+    this.app.get(routes.createSignupLink, async (req, res) => {
       const name = req.query.name;
+      const isRoadtripParticipant = req.query.name;
+
       const tempCode = makeID(20);
+      Persistence.addTemp(tempCode, name, isRoadtripParticipant);
 
-      // persist
-      Persistence.addTemp(tempCode, name);
-
-      res.status(200).send(`${this.frontendUrl}?action=complete-signup&tempCode=${tempCode}`);
+      res.status(200).send(`${this.frontendUrl}?action=${actions.createSignupLink}&tempCode=${tempCode}`);
     });
-    initTakeover(this, this.routes.takeover);
-    initStopTakeover(this, this.routes.stopTakeover);
-    initChangeRoadtripDevice(this, this.routes.changeRoadtripDevice);
-    initInitialRoute(this, this.routes.initial);
-    initAfterSpotifyAuth(this, this.routes.afterSpotifyAuth);
+    initTakeover(this, routes.takeover);
+    initStopTakeover(this, routes.stopTakeover);
+    initChangeRoadtripDevice(this, routes.changeRoadtripDevice);
+    initInitialRoute(this, routes.initial);
+    initAfterSpotifyAuth(this, routes.afterSpotifyAuth);
   }
 }
 

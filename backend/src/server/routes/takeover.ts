@@ -5,7 +5,7 @@ import { SpotifyClient } from "../../wrappers/SpotifyAPI";
 
 const INTERVAL_CLEARED_INDICATOR = 0;
 export function initTakeover(server: SpotifyTakeoverServer, route: string) {
-  server.app.get("/api/takeover", async (req, res) => {
+  server.app.get(route, async (req, res) => {
     //TODO: verify if request is valid
     console.log("Takeover");
 

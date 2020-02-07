@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, Typography, CardActions, Button, CardContent } from "@material-ui/core";
-import { API_URL } from "./utils";
+import { API_URL } from "../utils";
+import { routes } from "../sharedTypes";
 
 export default function Takeovercard(props: {
   masterPermissionLink?: string;
@@ -8,7 +9,7 @@ export default function Takeovercard(props: {
   currentUserId?: string;
 }) {
   async function startTakeover() {
-    const response = await fetch(`${API_URL}/api/takeover`, {
+    const response = await fetch(`${API_URL}${routes.takeover}`, {
       method: "GET",
       credentials: "include",
     });
@@ -18,7 +19,7 @@ export default function Takeovercard(props: {
   }
 
   async function stopTakeover() {
-    const response = await fetch(`${API_URL}/api/stop-takeover`, {
+    const response = await fetch(`${API_URL}${routes.stopTakeover}`, {
       method: "GET",
       credentials: "include",
     });

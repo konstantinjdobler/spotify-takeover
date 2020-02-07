@@ -1,17 +1,5 @@
 import React from "react";
-import {
-  Button,
-  CircularProgress,
-  Typography,
-  CardContent,
-  CardActions,
-  Paper,
-  Card,
-  CardHeader,
-  Grid,
-  Snackbar,
-  Container,
-} from "@material-ui/core";
+import { Typography, CardContent, Card, CardHeader, Grid } from "@material-ui/core";
 import { Smartphone } from "@material-ui/icons";
 
 export default class CurrentRoadtripDevice extends React.Component<

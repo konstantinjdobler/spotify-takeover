@@ -3,7 +3,7 @@ import Persistence from "../../wrappers/MongoDB";
 import { InitialRequestResponse } from "src/sharedTypes";
 
 export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
-  server.app.get("/api/initial", async (req, res) => {
+  server.app.get(route, async (req, res) => {
     const authenticityToken = req.cookies.authenticityToken as string | null;
     const tempCode = req.query.tempCode as string | null;
     if (authenticityToken) {

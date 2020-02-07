@@ -1,10 +1,11 @@
 import React from "react";
 import { Card, CardContent, CardActions, TextField, FormControlLabel, Checkbox, Button } from "@material-ui/core";
-import { API_URL } from "./utils";
-export default class CreateSignupLink extends React.Component<{}, { name: string; firstClassCitizen: boolean }> {
+import { API_URL } from "../utils";
+import { routes } from "../sharedTypes";
+export default class CreateSignupLink extends React.Component<{}, { name: string; isRoadtripParticipant: boolean }> {
   state = {
     name: "",
-    firstClassCitizen: false,
+    isRoadtripParticipant: false,
   };
   render() {
     return (
@@ -19,15 +20,19 @@ export default class CreateSignupLink extends React.Component<{}, { name: string
           <FormControlLabel
             control={
               <Checkbox
-                checked={this.state.firstClassCitizen}
-                onChange={(e, newValue) => this.setState({ firstClassCitizen: newValue })}
+                checked={this.state.isRoadtripParticipant}
+                onChange={(e, newValue) => this.setState({ isRoadtripParticipant: newValue })}
               />
             }
             label="First Class Citizen"
           />
         </CardContent>
         <CardActions>
-          <Button href={`${API_URL}/api/create-signup-link?name=${this.state.name}`}>Create Link</Button>
+          <Button
+            href={`${API_URL}${routes.createSignupLink}?name=${this.state.name}&isRoadtripParticipant=${this.state.isRoadtripParticipant}`}
+          >
+            Create Link
+          </Button>
         </CardActions>
       </Card>
     );

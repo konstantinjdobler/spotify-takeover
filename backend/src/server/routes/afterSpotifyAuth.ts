@@ -3,6 +3,7 @@ import Persistence from "../../wrappers/MongoDB";
 import { SpotifyCallbackState } from "../../schemas";
 import { SpotifyClient } from "../../wrappers/SpotifyAPI";
 import { makeID } from "../server-utils";
+import { actions } from "src/sharedTypes";
 
 export function initAfterSpotifyAuth(server: SpotifyTakeoverServer, route: string) {
   server.app.get("/api/after-spotify-auth", async (req, res) => {
@@ -15,31 +16,38 @@ export function initAfterSpotifyAuth(server: SpotifyTakeoverServer, route: strin
 
     if (state.slaveScope) {
       await Persistence.addSlaveRefreshTokenToUser(state.authenticityToken, refreshToken);
-      res.redirect(server.frontendUrl + "?action=permission-granted");
+      res.redirect(server.frontendUrl + `?action=${actions.permissionGranted}`);
     }
     if (state.masterScope) {
       await Persistence.addMasterRefreshTokenToUser(state.authenticityToken, refreshToken);
-      res.redirect(server.frontendUrl + "?action=permission-granted");
+      res.redirect(server.frontendUrl + `?action=${actions.permissionGranted}`);
     }
     if (state.basicScope) {
       const validTempInfo = await Persistence.validateTempCode(state.tempCode);
       const userInfo = await new SpotifyClient(refreshToken).getUserInfo();
       if (validTempInfo) {
         const authenticityToken = makeID(10);
-        await Persistence.addUser(authenticityToken, userInfo, refreshToken, validTempInfo.name);
+        await Persistence.addUser(
+          authenticityToken,
+          userInfo,
+          refreshToken,
+          validTempInfo.name,
+          validTempInfo.isRoadtripParticipant,
+        );
         console.log("Sending new authenticityToken with response", authenticityToken);
-        res.redirect(server.frontendUrl + "?action=signup-successful&authenticityToken=" + authenticityToken);
+        res.redirect(server.frontendUrl + `?action=${actions.signupSuccessful}&authenticityToken=${authenticityToken}`);
         return;
       }
       const previouslyKnownUser = await Persistence.userForSpotifyID(userInfo.id);
       if (previouslyKnownUser) {
         console.log("Previously known user logging in");
         res.redirect(
-          server.frontendUrl + "?action=login-successful&authenticityToken=" + previouslyKnownUser.authenticityToken,
+          server.frontendUrl +
+            `?action=${actions.loginSuccessful}&authenticityToken=${previouslyKnownUser.authenticityToken}`,
         );
       } else {
         console.log("Invalid tempCode for unkown user");
-        res.redirect(server.frontendUrl + "?action=signup-error");
+        res.redirect(server.frontendUrl + `?action=${actions.signupError}`);
       }
     }
   });

@@ -17,3 +17,21 @@ export function authRequired(response: InitialRequestResponse): response is Auth
 export function isOK(response: InitialRequestResponse): response is OKInitialRequestResponse {
   return !!(response as OKInitialRequestResponse).ok;
 }
+
+export const actions = {
+  permissionGranted: "permission-granted",
+  signupError: "signup-error",
+  loginSuccessful: "login-successful",
+  signupSuccessful: "signup-successful",
+  startSignup: "start-signup",
+  createSignupLink: "create-signup-link",
+};
+
+export const routes = {
+  changeRoadtripDevice: "/api/change-roadtrip-device",
+  afterSpotifyAuth: "/api/after-spotify-auth",
+  takeover: "/api/takeover",
+  stopTakeover: "/api/stop-takeover",
+  initial: "/api/initial",
+  createSignupLink: "/api/create-signup-link",
+};

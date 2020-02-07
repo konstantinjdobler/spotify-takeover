@@ -5,12 +5,14 @@ export interface User {
   slaveRefreshToken?: string;
   masterRefreshToken?: string;
   name: string;
+  isRoadtripParticipant?: boolean;
 }
 
 export interface Temp {
   tempCode: string;
   name: string;
   used: boolean;
+  isRoadtripParticipant: boolean;
 }
 
 export type TakeoverEvent = {
