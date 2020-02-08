@@ -2,11 +2,13 @@ export type InitialRequestResponse = OKInitialRequestResponse | AuthRequiredInit
 export type OKInitialRequestResponse = {
   ok: true;
   playback?: SpotifyApi.CurrentlyPlayingObject;
-  user: { name: string; spotify: SpotifyApi.UserObjectPublic };
-  activeTakeoverUser?: { name: string; id: string };
+  user: PublicUser;
+  activeTakeoverUser?: PublicUser;
   masterPermissionLink?: string;
   slavePermissionLink?: string;
 };
+
+export type PublicUser = { name: string; spotify: SpotifyApi.UserObjectPublic; isRoadtripParticipant: boolean };
 
 export type AuthRequiredInitialRequestResponse = { authRequired?: string };
 

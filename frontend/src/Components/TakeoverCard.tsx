@@ -1,12 +1,12 @@
 import React from "react";
 import { Card, Typography, CardActions, Button, CardContent } from "@material-ui/core";
 import { API_URL } from "../utils";
-import { routes } from "../sharedTypes";
+import { routes, PublicUser } from "../sharedTypes";
 
 export default function Takeovercard(props: {
   masterPermissionLink?: string;
-  activeTakeoverUser?: { name: string; id: string };
-  currentUserId?: string;
+  activeTakeoverUser?: PublicUser;
+  currentUserSpotifyId?: string;
 }) {
   async function startTakeover() {
     const response = await fetch(`${API_URL}${routes.takeover}`, {
@@ -51,7 +51,8 @@ export default function Takeovercard(props: {
     </Button>
   );
 
-  const takeoverIsByUser = !!props.currentUserId && props.activeTakeoverUser?.id === props.currentUserId;
+  const takeoverIsByUser =
+    !!props.currentUserSpotifyId && props.activeTakeoverUser?.spotify.id === props.currentUserSpotifyId;
   console.log(props);
   const AppropriateButton = props.masterPermissionLink
     ? GrantPermissionsButton

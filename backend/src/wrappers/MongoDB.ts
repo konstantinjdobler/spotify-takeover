@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { User, TakeoverEvent, Temp } from "../schemas";
+import { FullUser, TakeoverEvent, Temp } from "../schemas";
 require("dotenv").config();
 
 class MongoDBWrapper {
@@ -55,27 +55,27 @@ class MongoDBWrapper {
 
   async userForSpotifyID(spotifyID: string) {
     const db = await this.connectToDB();
-    return db.collection<User>("users").findOne({ "spotify.id": spotifyID });
+    return db.collection<FullUser>("users").findOne({ "spotify.id": spotifyID });
   }
 
-  async getUserForToken(authenticityToken: string): Promise<User | null> {
+  async getUserForToken(authenticityToken: string): Promise<FullUser | null> {
     const db = await this.connectToDB();
-    return db.collection<User>("users").findOne({ authenticityToken: authenticityToken });
+    return db.collection<FullUser>("users").findOne({ authenticityToken: authenticityToken });
   }
 
   async addSlaveRefreshTokenToUser(authenticityToken: string, slaveRefreshToken: string) {
     const db = await this.connectToDB();
-    return db.collection<User>("users").updateOne({ authenticityToken }, { $set: { slaveRefreshToken } });
+    return db.collection<FullUser>("users").updateOne({ authenticityToken }, { $set: { slaveRefreshToken } });
   }
 
   async addMasterRefreshTokenToUser(authenticityToken: string, masterRefreshToken: string) {
     const db = await this.connectToDB();
-    return db.collection<User>("users").updateOne({ authenticityToken }, { $set: { masterRefreshToken } });
+    return db.collection<FullUser>("users").updateOne({ authenticityToken }, { $set: { masterRefreshToken } });
   }
 
-  async updateUser(authenticityToken: string, update: Partial<User>) {
+  async updateUser(authenticityToken: string, update: Partial<FullUser>) {
     const db = await this.connectToDB();
-    return db.collection<User>("users").updateOne({ authenticityToken }, update);
+    return db.collection<FullUser>("users").updateOne({ authenticityToken }, update);
   }
 
   async addUser(
@@ -87,7 +87,7 @@ class MongoDBWrapper {
   ) {
     const db = await this.connectToDB();
     const operation = await db
-      .collection<User>("users")
+      .collection<FullUser>("users")
       .replaceOne(
         { "spotify.id": userInfo.id },
         { authenticityToken, spotify: userInfo, refreshToken, name, isRoadtripParticipant },

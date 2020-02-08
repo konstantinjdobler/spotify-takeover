@@ -1,11 +1,22 @@
-export interface User {
+import { PublicUser } from "./sharedTypes";
+
+/**
+ * IMPORTANT: Ensure the private property list up-to-date with the actual interface
+ */
+export function stripPrivateInfoFromUser(fullUser: FullUser) {
+  const nulledPrivateProperties = {
+    refreshToken: undefined,
+    authenticityToken: undefined,
+    slaveRefreshToken: undefined,
+    masterRefreshToken: undefined,
+  };
+  return { ...fullUser, ...nulledPrivateProperties };
+}
+export interface FullUser extends PublicUser {
   refreshToken: string;
   authenticityToken: string;
-  spotify: SpotifyApi.UserObjectPublic;
   slaveRefreshToken?: string;
   masterRefreshToken?: string;
-  name: string;
-  isRoadtripParticipant?: boolean;
 }
 
 export interface Temp {

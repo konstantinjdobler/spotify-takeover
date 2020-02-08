@@ -8,7 +8,7 @@ import { setIntervalAsync, clearIntervalAsync, SetIntervalAsyncTimer } from "set
 import { SpotifyClient } from "../wrappers/SpotifyAPI";
 import Persistence from "../wrappers/MongoDB";
 import { makeID } from "./server-utils";
-import { User } from "src/schemas";
+import { FullUser } from "src/schemas";
 import { initChangeRoadtripDevice } from "./routes/changeRoadtripDevice";
 import { initInitialRoute } from "./routes/initial";
 import { initTakeover, initStopTakeover } from "./routes/takeover";
@@ -19,7 +19,7 @@ require("dotenv").config();
 export default class SpotifyTakeoverServer {
   public app: Application;
   public readonly takeoverDurationMS = 60000;
-  public activeTakeoverInfo?: { user: User; interval: SetIntervalAsyncTimer };
+  public activeTakeoverInfo?: { user: FullUser; interval: SetIntervalAsyncTimer };
   public currentRoadtripDeviceSpotify?: SpotifyClient;
   constructor(public applicationSpotify: SpotifyClient, public frontendUrl: string, private developmentMode: boolean) {
     this.app = express();

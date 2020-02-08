@@ -1,6 +1,7 @@
 import SpotifyTakeoverServer from "../SpotifyTakeover";
 import Persistence from "../../wrappers/MongoDB";
 import { InitialRequestResponse } from "src/sharedTypes";
+import { stripPrivateInfoFromUser } from "src/schemas";
 
 export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
   server.app.get(route, async (req, res) => {
@@ -19,12 +20,12 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
           : undefined;
         const playback = await server.currentRoadtripDeviceSpotify?.getCurrentPlayback();
         const activeTakeoverUser = server.activeTakeoverInfo
-          ? { name: server.activeTakeoverInfo.user.name, id: server.activeTakeoverInfo.user.spotify.id }
+          ? stripPrivateInfoFromUser(server.activeTakeoverInfo.user)
           : undefined;
 
         const response: InitialRequestResponse = {
           ok: true,
-          user: { name: authenticatedUser.name, spotify: authenticatedUser.spotify },
+          user: stripPrivateInfoFromUser(authenticatedUser),
           slavePermissionLink,
           masterPermissionLink,
           activeTakeoverUser,

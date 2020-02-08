@@ -7,7 +7,7 @@ import { removeActionFromUrl, isProd, API_URL } from "./utils";
 import AuthenticationLink from "./Components/AuthenticationPage";
 import SetDeviceCard from "./Components/SetDeviceCard";
 import Takeovercard from "./Components/TakeoverCard";
-import { InitialRequestResponse, authRequired, isOK, actions, routes } from "./sharedTypes";
+import { InitialRequestResponse, authRequired, isOK, actions, routes, PublicUser } from "./sharedTypes";
 
 console.log("Starting in production mode ( true | false )", isProd);
 type AppState = {
@@ -15,8 +15,8 @@ type AppState = {
   authenticationLink?: string;
   masterPermissionLink?: string;
   slavePermissionLink?: string;
-  user?: { name: string; spotify: SpotifyApi.UserObjectPublic };
-  activeTakeoverUser?: { name: string; id: string };
+  user?: PublicUser;
+  activeTakeoverUser?: PublicUser;
   secretState?: boolean;
   toast?: JSX.Element;
   alert?: JSX.Element;
@@ -130,7 +130,7 @@ class App extends React.Component<{}, AppState> {
           <Takeovercard
             masterPermissionLink={this.state.masterPermissionLink}
             activeTakeoverUser={this.state.activeTakeoverUser}
-            currentUserId={this.state.user?.spotify.id}
+            currentUserSpotifyId={this.state.user?.spotify.id}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
