@@ -15,8 +15,8 @@ jobs:
           host: ${{ secrets.PERSONAL_SERVER_HOST }}
           username: ${{ secrets.PERSONAL_SERVER_USER }}
           password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
-          timeout: 20m
-          command_timeout: 15m
+          timeout: 30m
+          command_timeout: 30m
           script: |
             echo "Shutting down server"
             cd ~/projects/spotify-takeover/backend
