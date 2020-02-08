@@ -2,6 +2,7 @@ export type InitialRequestResponse = OKInitialRequestResponse | AuthRequiredInit
 export type OKInitialRequestResponse = {
   ok: true;
   playback?: SpotifyApi.CurrentlyPlayingObject;
+  linkedSpotifyUser?: PublicUser;
   user: PublicUser;
   activeTakeoverUser?: PublicUser;
   masterPermissionLink?: string;
@@ -30,7 +31,8 @@ export const actions = {
 };
 
 export const routes = {
-  changeRoadtripDevice: "/api/change-roadtrip-device",
+  unlinkSpotifyAccount: "/api/unlink-spotify-account",
+  linkSpotifyAccount: "/api/change-roadtrip-device",
   afterSpotifyAuth: "/api/after-spotify-auth",
   takeover: "/api/takeover",
   stopTakeover: "/api/stop-takeover",

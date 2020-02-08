@@ -76,7 +76,7 @@ export class SpotifyClient {
       true,
     );
   }
-  getUserSignupUrl(tempCode: string) {
+  getUserSpotifyAuthUrl(tempCode: string) {
     const state: SpotifyCallbackState = { tempCode, basicScope: true };
     return this.engine.createAuthorizeURL(["user-read-email"], JSON.stringify(state), true);
   }

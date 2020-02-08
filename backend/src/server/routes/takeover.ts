@@ -42,7 +42,7 @@ export function initTakeover(server: SpotifyTakeoverServer, route: string) {
   });
 }
 
-async function endTakeover(server: SpotifyTakeoverServer, interval: SetIntervalAsyncTimer) {
+export async function endTakeover(server: SpotifyTakeoverServer, interval: SetIntervalAsyncTimer) {
   if (interval.id === INTERVAL_CLEARED_INDICATOR) return;
   await clearIntervalAsync(interval);
   interval.id = INTERVAL_CLEARED_INDICATOR;
@@ -77,22 +77,22 @@ export function initStopTakeover(server: SpotifyTakeoverServer, route: string) {
 const takeoverIntervalHandler = async (server: SpotifyTakeoverServer, masterSpotify: SpotifyClient) => {
   console.log("iteration of playback check");
   const masterPlayback = await masterSpotify.getCurrentPlayback();
-  if (!server.currentRoadtripDeviceSpotify) {
+  if (!server.linkedSpotify) {
     console.log("No slave spotify available");
     return;
   }
   if (!masterPlayback.is_playing || !masterPlayback.item) {
     console.log("master playback not playing");
-    server.currentRoadtripDeviceSpotify.setCurrentPlayback(null);
+    server.linkedSpotify.client.setCurrentPlayback(null);
   } else {
-    const slavePlayback = await server.currentRoadtripDeviceSpotify.getCurrentPlayback();
+    const slavePlayback = await server.linkedSpotify.client.getCurrentPlayback();
 
     if (!slavePlayback.is_playing || slavePlayback.item?.id !== masterPlayback.item.id) {
-      await server.currentRoadtripDeviceSpotify.setCurrentPlayback(masterPlayback.item!.uri);
-      await server.currentRoadtripDeviceSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
+      await server.linkedSpotify.client.setCurrentPlayback(masterPlayback.item!.uri);
+      await server.linkedSpotify.client.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
       //TODO: take timestamp into account to combat http request and polling point differences
     } else if (Math.abs(slavePlayback.progress_ms! - masterPlayback.progress_ms!) > 8000) {
-      await server.currentRoadtripDeviceSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
+      await server.linkedSpotify.client.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
     }
     console.log("master playback", masterPlayback.item.name, masterPlayback.progress_ms);
     console.log("slave playback", slavePlayback.item?.name, slavePlayback.progress_ms);

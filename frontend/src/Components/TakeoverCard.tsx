@@ -7,6 +7,7 @@ export default function Takeovercard(props: {
   masterPermissionLink?: string;
   activeTakeoverUser?: PublicUser;
   currentUserSpotifyId?: string;
+  requestServerStateUpdate: () => void;
 }) {
   async function startTakeover() {
     const response = await fetch(`${API_URL}${routes.takeover}`, {
@@ -16,6 +17,7 @@ export default function Takeovercard(props: {
 
     const jsonResponse = await response.json();
     console.log(jsonResponse);
+    props.requestServerStateUpdate();
   }
 
   async function stopTakeover() {
@@ -26,6 +28,7 @@ export default function Takeovercard(props: {
 
     const jsonResponse = await response.json();
     console.log(jsonResponse);
+    props.requestServerStateUpdate();
   }
 
   const GrantPermissionsButton = () => (

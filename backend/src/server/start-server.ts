@@ -16,8 +16,6 @@ const spotifyCredentials: SpotifyApiCredentials = {
 SpotifyClient.setCredentials(spotifyCredentials);
 const spotifyAppUserClient = new SpotifyClient(process.env.APP_USER_REFRESH_TOKEN!);
 
-console.log(process.env.APP_USER_REFRESH_TOKEN!);
-
 const dailySongVoteServer = new SpotifyTakeoverServer(spotifyAppUserClient, frontendUrl, developmentMode);
 
 dailySongVoteServer.start(parseInt(process.env.PORT!));

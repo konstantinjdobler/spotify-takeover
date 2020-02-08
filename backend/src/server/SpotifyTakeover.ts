@@ -1,26 +1,26 @@
-import express, { Request } from "express";
+import express from "express";
 import { Application } from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import basicAuth from "express-basic-auth";
-import { setIntervalAsync, clearIntervalAsync, SetIntervalAsyncTimer } from "set-interval-async/dynamic";
+import { SetIntervalAsyncTimer } from "set-interval-async/dynamic";
 
 import { SpotifyClient } from "../wrappers/SpotifyAPI";
 import Persistence from "../wrappers/MongoDB";
 import { makeID } from "./server-utils";
-import { FullUser } from "src/schemas";
-import { initChangeRoadtripDevice } from "./routes/changeRoadtripDevice";
+import { FullUser } from "../schemas";
+import { initLinkSpotify, initUnlinkSpotify } from "./routes/linkSpotifyAccount";
 import { initInitialRoute } from "./routes/initial";
 import { initTakeover, initStopTakeover } from "./routes/takeover";
 import { initAfterSpotifyAuth } from "./routes/afterSpotifyAuth";
-import { actions, routes } from "src/sharedTypes";
+import { actions, routes } from "../sharedTypes";
 require("dotenv").config();
 
 export default class SpotifyTakeoverServer {
   public app: Application;
   public readonly takeoverDurationMS = 60000;
   public activeTakeoverInfo?: { user: FullUser; interval: SetIntervalAsyncTimer };
-  public currentRoadtripDeviceSpotify?: SpotifyClient;
+  public linkedSpotify?: { client: SpotifyClient; user: FullUser };
   constructor(public applicationSpotify: SpotifyClient, public frontendUrl: string, private developmentMode: boolean) {
     this.app = express();
     this.initExpressApp();
@@ -63,7 +63,8 @@ export default class SpotifyTakeoverServer {
     });
     initTakeover(this, routes.takeover);
     initStopTakeover(this, routes.stopTakeover);
-    initChangeRoadtripDevice(this, routes.changeRoadtripDevice);
+    initLinkSpotify(this, routes.linkSpotifyAccount);
+    initUnlinkSpotify(this, routes.unlinkSpotifyAccount);
     initInitialRoute(this, routes.initial);
     initAfterSpotifyAuth(this, routes.afterSpotifyAuth);
   }

@@ -21,6 +21,7 @@ type AppState = {
   toast?: JSX.Element;
   alert?: JSX.Element;
   playbackInfo?: SpotifyApi.CurrentlyPlayingObject;
+  linkedSpotifyUser?: PublicUser;
 };
 class App extends React.Component<{}, AppState> {
   state: AppState = {
@@ -99,9 +100,14 @@ class App extends React.Component<{}, AppState> {
         slavePermissionLink: res.slavePermissionLink,
         playbackInfo: res.playback,
         activeTakeoverUser: res.activeTakeoverUser,
+        linkedSpotifyUser: res.linkedSpotifyUser,
       });
     }
   }
+
+  requestServerStateUpdate = () => {
+    this.initial("");
+  };
 
   loadingIndicator() {
     return (
@@ -131,10 +137,17 @@ class App extends React.Component<{}, AppState> {
             masterPermissionLink={this.state.masterPermissionLink}
             activeTakeoverUser={this.state.activeTakeoverUser}
             currentUserSpotifyId={this.state.user?.spotify.id}
+            requestServerStateUpdate={this.requestServerStateUpdate}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <SetDeviceCard slavePermissionLink={this.state.slavePermissionLink} />
+          <SetDeviceCard
+            slavePermissionLink={this.state.slavePermissionLink}
+            currentUserIsLinked={
+              !!this.state.linkedSpotifyUser && this.state.linkedSpotifyUser.spotify.id === this.state.user?.spotify.id
+            }
+            requestServerStateUpdate={this.requestServerStateUpdate}
+          />
         </Grid>
         <Snackbar
           open={!!this.state.toast}

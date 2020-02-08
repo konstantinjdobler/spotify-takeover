@@ -9,6 +9,7 @@ export function stripPrivateInfoFromUser(fullUser: FullUser) {
     authenticityToken: undefined,
     slaveRefreshToken: undefined,
     masterRefreshToken: undefined,
+    _id: undefined,
   };
   return { ...fullUser, ...nulledPrivateProperties };
 }

@@ -7,7 +7,7 @@ services:
     volumes:
       - ./:/usr/src/app
     ports:
-      - 121212:121212
+      - 33333:33333
     depends_on:
       - db
   db:
@@ -23,7 +23,7 @@ services:
   mongo-express:
     image: mongo-express
     ports:
-      - 131313:131313
+      - 33334:33334
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: ${MONGO_USER}
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_PWD}

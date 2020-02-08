@@ -3,7 +3,7 @@ import Persistence from "../../wrappers/MongoDB";
 import { SpotifyCallbackState } from "../../schemas";
 import { SpotifyClient } from "../../wrappers/SpotifyAPI";
 import { makeID } from "../server-utils";
-import { actions } from "src/sharedTypes";
+import { actions } from "../../sharedTypes";
 
 export function initAfterSpotifyAuth(server: SpotifyTakeoverServer, route: string) {
   server.app.get("/api/after-spotify-auth", async (req, res) => {
