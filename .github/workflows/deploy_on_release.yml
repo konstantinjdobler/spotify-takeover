@@ -1,8 +1,8 @@
 name: Deploy To Personal Server
 
-# on:
-#   push:
-#     branches: master
+on:
+  push:
+    branches: master
 
 jobs:
   deploy:
@@ -15,15 +15,15 @@ jobs:
           host: ${{ secrets.PERSONAL_SERVER_HOST }}
           username: ${{ secrets.PERSONAL_SERVER_USER }}
           password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
-          timeout: 10m
+          timeout: 20m
           command_timeout: 15m
           script: |
             echo "Shutting down server"
-            cd ~/projects/daily-song-vote/backend
+            cd ~/projects/spotify-takeover/backend
             docker-compose down
 
             echo "Checking out commit with SHA: ${{github.sha}}"
-            cd ~/projects/daily-song-vote
+            cd ~/projects/spotify-takeover
             git fetch
             git checkout -f ${{github.sha}}
 

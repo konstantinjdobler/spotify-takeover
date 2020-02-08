@@ -36,7 +36,7 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
       }
     }
     console.log("Initial request without authenticityToken, sending authentication link");
-    const spotifyAuthUrl = server.applicationSpotify.getUserSignupUrl(tempCode || "no-code-provided");
+    const spotifyAuthUrl = server.applicationSpotify.getUserSignupUrl(tempCode ?? "no-code-provided");
     console.log("Spotify Auth url: ", spotifyAuthUrl);
     res.status(200).send({ authRequired: spotifyAuthUrl });
   });

@@ -6,13 +6,10 @@ import { SpotifyClient } from "../../wrappers/SpotifyAPI";
 const INTERVAL_CLEARED_INDICATOR = 0;
 export function initTakeover(server: SpotifyTakeoverServer, route: string) {
   server.app.get(route, async (req, res) => {
-    //TODO: verify if request is valid
-    console.log("Takeover");
-
     const authenticityToken: string = req.cookies.authenticityToken;
     const authenticatedUser = await Persistence.getUserForToken(authenticityToken);
-    if (!authenticatedUser) {
-      console.log("Unauthorized voting attempt, votingToken:", authenticityToken);
+    if (!authenticatedUser || !authenticatedUser.isRoadtripParticipant) {
+      console.log("Unauthorized takeover attempt", authenticatedUser?.name);
       res.status(401).send({ error: "Unauthorized" });
       return;
     }
@@ -31,13 +28,13 @@ export function initTakeover(server: SpotifyTakeoverServer, route: string) {
       return res.status(409).send("Cannot process takeover because of currently active takeover");
     }
 
+    console.log("Starting takeover");
     const masterSpotify = new SpotifyClient(authenticatedUser.refreshToken);
     const interval = setIntervalAsync(() => takeoverIntervalHandler(server, masterSpotify), 4000);
     server.activeTakeoverInfo = { user: authenticatedUser, interval };
     Persistence.addTakeoverEvent(authenticatedUser.spotify);
 
     setTimeout(() => {
-      console.log("jo");
       endTakeover(server, interval);
     }, server.takeoverDurationMS);
 

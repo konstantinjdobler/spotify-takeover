@@ -7,4 +7,4 @@ export function removeActionFromUrl() {
 }
 
 export const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
-export const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:42069";
+export const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:121212";
