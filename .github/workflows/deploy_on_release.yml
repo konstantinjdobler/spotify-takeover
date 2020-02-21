@@ -9,11 +9,12 @@ jobs:
     name: Deploy To Server
     runs-on: ubuntu-latest
     steps:
+      uses: actions/checkout@master
+      uses: actions/setup-node@master
       - name: Generate build folder
-        uses: actions/checkout@master
-        uses: actions/setup-node@master
         run: npm install
         run: npm run build
+      - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
           name: frontendBuild
