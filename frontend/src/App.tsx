@@ -8,6 +8,7 @@ import AuthenticationLink from "./Components/AuthenticationPage";
 import SetDeviceCard from "./Components/SetDeviceCard";
 import Takeovercard from "./Components/TakeoverCard";
 import { InitialRequestResponse, authRequired, isOK, actions, routes, PublicUser } from "./sharedTypes";
+import SignupErrorCard from "./Components/SignupErrorPage";
 
 console.log("Starting in production mode ( true | false )", isProd);
 type AppState = {
@@ -20,6 +21,7 @@ type AppState = {
   secretState?: boolean;
   toast?: JSX.Element;
   alert?: JSX.Element;
+  signupError?: boolean;
   playbackInfo?: SpotifyApi.CurrentlyPlayingObject;
   linkedSpotifyUser?: PublicUser;
 };
@@ -70,6 +72,10 @@ class App extends React.Component<{}, AppState> {
     let initialRequestModifier = "";
     if (action === actions.createSignupLink) {
       this.setState({ loading: false, secretState: true });
+      return;
+    }
+    if (action === actions.signupError) {
+      this.setState({ loading: false, signupError: true });
       return;
     }
     if (action) {
@@ -127,6 +133,7 @@ class App extends React.Component<{}, AppState> {
     if (this.state.loading) return this.loadingIndicator();
     if (this.state.authenticationLink) return <AuthenticationLink authenticationLink={this.state.authenticationLink} />;
     if (this.state.secretState) return <CreateSignupLink />;
+    if (this.state.signupError) return <SignupErrorCard />;
     return (
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6}>
