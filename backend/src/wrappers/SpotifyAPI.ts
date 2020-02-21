@@ -41,7 +41,11 @@ export class SpotifyClient {
       this.engine.pause();
     } else {
       console.log("play", song);
-      this.engine.play({ uris: [song], context_uri: context?.uri }).catch(r => console.log(r));
+      if (context) {
+        this.engine.play({ context_uri: context?.uri, offset: { uri: song } }).catch(r => console.log(r));
+      } else {
+        this.engine.play({ uris: [song] }).catch(r => console.log(r));
+      }
     }
   }
 

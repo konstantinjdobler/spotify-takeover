@@ -4,7 +4,7 @@ require("dotenv").config();
 
 const developmentMode = process.env.NODE_ENV !== "production";
 
-const developRedirectUri = "https://mousiki1234567.tunnel.datahub.at/api/after-spotify-auth";
+const developRedirectUri = "http://mousiki1234567.serverless.social/api/after-spotify-auth";
 const spotifyAuthCallback = developmentMode ? developRedirectUri : process.env.REDIRECT_URI!;
 const frontendUrl = developmentMode ? "http://localhost:3000" : process.env.FRONTEND_URL!;
 

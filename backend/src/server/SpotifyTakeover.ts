@@ -59,7 +59,7 @@ export default class SpotifyTakeoverServer {
   initRoutes() {
     this.app.get(routes.createSignupLink, async (req, res) => {
       const name = req.query.name;
-      const isRoadtripParticipant = req.query.name;
+      const isRoadtripParticipant = req.query.isRoadtripParticipant;
 
       const tempCode = makeID(20);
       Persistence.addTemp(tempCode, name, isRoadtripParticipant);
