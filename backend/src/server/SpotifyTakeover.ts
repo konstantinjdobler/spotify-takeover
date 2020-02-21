@@ -23,7 +23,7 @@ export default class SpotifyTakeoverServer {
   public activeTakeoverInfo?: {
     user: FullUser;
     interval: SetIntervalAsyncTimer;
-    previousContext: SpotifyApi.ContextObject | null;
+    previousPlayback: SpotifyApi.CurrentlyPlayingObject;
   };
   public linkedSpotify?: { client: SpotifyClient; user: FullUser };
   constructor(public applicationSpotify: SpotifyClient, public frontendUrl: string, private developmentMode: boolean) {

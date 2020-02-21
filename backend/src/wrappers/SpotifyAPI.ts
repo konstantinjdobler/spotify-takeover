@@ -34,14 +34,14 @@ export class SpotifyClient {
     await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
   }
 
-  async setCurrentPlayback(song: TrackURI | null) {
+  async setCurrentPlayback(song: TrackURI | null, context?: SpotifyApi.ContextObject) {
     await this.refreshAccessToken();
     if (!song) {
       console.log("pause");
       this.engine.pause();
     } else {
       console.log("play", song);
-      this.engine.play({ uris: [song] }).catch(r => console.log(r));
+      this.engine.play({ uris: [song], context_uri: context?.uri }).catch(r => console.log(r));
     }
   }
 

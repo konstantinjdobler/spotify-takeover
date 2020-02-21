@@ -36,9 +36,10 @@ export function initTakeover(server: SpotifyTakeoverServer, route: string) {
 
     console.log("Starting takeover");
     const masterSpotify = new SpotifyClient(authenticatedUser.refreshToken);
-    const previousContext = (await server.linkedSpotify.client.getCurrentPlayback()).context;
+    const currentPlayback = await server.linkedSpotify.client.getCurrentPlayback();
+
     const interval = setIntervalAsync(() => takeoverIntervalHandler(server, masterSpotify), 4000);
-    server.activeTakeoverInfo = { user: authenticatedUser, interval, previousContext };
+    server.activeTakeoverInfo = { user: authenticatedUser, interval, previousPlayback: currentPlayback };
     Persistence.addTakeoverEvent(authenticatedUser.spotify);
 
     setTimeout(() => {
@@ -53,6 +54,14 @@ export async function endTakeover(server: SpotifyTakeoverServer, interval: SetIn
   if (interval.id === INTERVAL_CLEARED_INDICATOR) return;
   await clearIntervalAsync(interval);
   interval.id = INTERVAL_CLEARED_INDICATOR;
+  await server.linkedSpotify?.client.setCurrentPlayback(
+    server.activeTakeoverInfo!.previousPlayback.item?.uri ?? null,
+    server.activeTakeoverInfo?.previousPlayback.context ?? undefined,
+  );
+  server.activeTakeoverInfo?.previousPlayback.progress_ms &&
+    (await server.linkedSpotify?.client.seekPositionInCurrentPlayback(
+      server.activeTakeoverInfo.previousPlayback.progress_ms,
+    ));
   server.activeTakeoverInfo = undefined;
   console.log("Takeover ended");
 }
