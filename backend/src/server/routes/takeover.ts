@@ -25,13 +25,20 @@ export function initTakeover(server: SpotifyTakeoverServer, route: string) {
       console.log("Illegal takeover");
     }
     if (server.activeTakeoverInfo) {
-      return res.status(409).send("Cannot process takeover because of currently active takeover");
+      return res.status(400).send("Cannot process takeover because of currently active takeover");
+    }
+    if (!server.linkedSpotify) {
+      return res.status(400).send("No linked spotify account");
+    }
+    if (server.linkedSpotify.user.authenticityToken === authenticatedUser.authenticityToken) {
+      return res.status(400).send("Cannot takeover when spotify account is linked");
     }
 
     console.log("Starting takeover");
     const masterSpotify = new SpotifyClient(authenticatedUser.refreshToken);
+    const previousContext = (await server.linkedSpotify.client.getCurrentPlayback()).context;
     const interval = setIntervalAsync(() => takeoverIntervalHandler(server, masterSpotify), 4000);
-    server.activeTakeoverInfo = { user: authenticatedUser, interval };
+    server.activeTakeoverInfo = { user: authenticatedUser, interval, previousContext };
     Persistence.addTakeoverEvent(authenticatedUser.spotify);
 
     setTimeout(() => {

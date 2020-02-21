@@ -14,12 +14,17 @@ import { initInitialRoute } from "./routes/initial";
 import { initTakeover, initStopTakeover } from "./routes/takeover";
 import { initAfterSpotifyAuth } from "./routes/afterSpotifyAuth";
 import { actions, routes } from "../sharedTypes";
+import SpotifyWebApi from "spotify-web-api-node";
 require("dotenv").config();
 
 export default class SpotifyTakeoverServer {
   public app: Application;
   public readonly takeoverDurationMS = 60000;
-  public activeTakeoverInfo?: { user: FullUser; interval: SetIntervalAsyncTimer };
+  public activeTakeoverInfo?: {
+    user: FullUser;
+    interval: SetIntervalAsyncTimer;
+    previousContext: SpotifyApi.ContextObject | null;
+  };
   public linkedSpotify?: { client: SpotifyClient; user: FullUser };
   constructor(public applicationSpotify: SpotifyClient, public frontendUrl: string, private developmentMode: boolean) {
     this.app = express();
@@ -59,7 +64,7 @@ export default class SpotifyTakeoverServer {
       const tempCode = makeID(20);
       Persistence.addTemp(tempCode, name, isRoadtripParticipant);
 
-      res.status(200).send(`${this.frontendUrl}?action=${actions.createSignupLink}&tempCode=${tempCode}`);
+      res.status(200).send(`${this.frontendUrl}?action=${actions.startSignup}&tempCode=${tempCode}`);
     });
     initTakeover(this, routes.takeover);
     initStopTakeover(this, routes.stopTakeover);

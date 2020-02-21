@@ -9,50 +9,51 @@ jobs:
     name: Deploy To Server
     runs-on: ubuntu-latest
     steps:
-      uses: actions/checkout@master
-      uses: actions/setup-node@master
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: "10.x"
       - name: Generate build folder
-        run: npm install
-        run: npm run build
+        run: |
+          cd frontend
+          npm install
+          npm run build
       - name: Upload artifact
         uses: actions/upload-artifact@v1
         with:
           name: frontendBuild
           path: ./frontend/build
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.PERSONAL_SERVER_HOST }}
+          username: ${{ secrets.PERSONAL_SERVER_USER }}
+          password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
+          source: "./frontend/build"
+          rm: true
+          target: "~/projects/spotify-takeover/frontend/"
+          strip_components: 2
       - name: executing remote ssh commands using password
         uses: konstantinjdobler/ssh-action@master
         with:
           host: ${{ secrets.PERSONAL_SERVER_HOST }}
           username: ${{ secrets.PERSONAL_SERVER_USER }}
           password: ${{ secrets.PERSONAL_SERVER_PASSWORD }}
-          timeout: 30m
           command_timeout: 30m
           script: |
             echo "Shutting down server"
             cd ~/projects/spotify-takeover/backend
             docker-compose down
 
-            echo "Checking out commit with SHA: ${{github.sha}}"
+            echo "Checking out master"
             cd ~/projects/spotify-takeover
             git fetch
-            git checkout -f ${{github.sha}}
-
-            echo "Updating frontend"
-            cd frontend
-            echo "Updating frontend dependencies"
-            npm i --only=production
-            echo "Running frontend build"
-            export TSC_WATCHFILE=UseFsEventsWithFallbackDynamicPolling
-
-            npm run build
+            git reset --hard origin/master
 
             echo "Updating backend"
-            cd ../backend
-            echo "Updating backend dependencies"
-            npm i --only=production
+            cd backend
             echo "Building server"
             docker-compose up -d --build 
-
 
             echo "Reloading nginx"
             sudo nginx -s reload

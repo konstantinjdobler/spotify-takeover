@@ -6,5 +6,5 @@ export function removeActionFromUrl() {
   }
 }
 
-export const isProd = process.env.REACT_APP_IS_PRODUCTION === "true";
-export const API_URL = isProd ? process.env.REACT_APP_API_URL! : "http://localhost:33333";
+export const isProd = process.env.NODE_ENV === "production";
+export const API_URL = isProd ? "https://roadtrip-api.konstantin-dobler.de" : "http://localhost:33333";
