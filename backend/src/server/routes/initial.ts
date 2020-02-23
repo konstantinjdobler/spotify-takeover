@@ -23,7 +23,7 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
         const activeTakeoverUser = server.activeTakeoverInfo
           ? stripPrivateInfoFromUser(server.activeTakeoverInfo.user)
           : undefined;
-
+        const userIsLiveListening = !!server.liveListen[authenticityToken];
         const response: InitialRequestResponse = {
           ok: true,
           user: stripPrivateInfoFromUser(authenticatedUser),
@@ -32,6 +32,7 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
           activeTakeoverUser,
           playback,
           linkedSpotifyUser,
+          userIsLiveListening,
         };
         res.status(200).send(response);
         return;

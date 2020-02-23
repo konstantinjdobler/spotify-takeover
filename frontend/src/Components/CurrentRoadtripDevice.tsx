@@ -1,15 +1,19 @@
 import React from "react";
 import { Typography, CardContent, Card, CardHeader, Grid } from "@material-ui/core";
 import { Smartphone } from "@material-ui/icons";
+import { PublicUser } from "../sharedTypes";
 
 export default class CurrentRoadtripDevice extends React.Component<
-  { playbackInfo?: SpotifyApi.CurrentlyPlayingObject; slavePermissionLink?: string },
+  { playbackInfo?: SpotifyApi.CurrentlyPlayingObject; slavePermissionLink?: string; linkedSpotifyUser?: PublicUser },
   {}
 > {
   render() {
     return (
       <Card>
-        <CardHeader title="Currently Playing" titleTypographyProps={{ variant: "h3" }} />
+        <CardHeader
+          title={`Currently Linked: ${this.props.linkedSpotifyUser?.name ?? "Nobody"}`}
+          titleTypographyProps={{ variant: "h3" }}
+        />
         <CardContent>
           <Grid container spacing={1}>
             <Grid item xs={6}>

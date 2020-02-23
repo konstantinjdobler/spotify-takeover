@@ -34,7 +34,7 @@ export class SpotifyClient {
     await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
   }
 
-  async setCurrentPlayback(song: TrackURI | null, context?: SpotifyApi.ContextObject) {
+  async setCurrentPlayback(song: TrackURI | null, context?: SpotifyApi.ContextObject | null) {
     await this.refreshAccessToken();
     if (!song) {
       console.log("pause");

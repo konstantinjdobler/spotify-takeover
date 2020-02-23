@@ -38,6 +38,7 @@ export function initTakeover(server: SpotifyTakeoverServer, route: string) {
     const masterSpotify = new SpotifyClient(authenticatedUser.refreshToken);
     const currentPlayback = await server.linkedSpotify.client.getCurrentPlayback();
 
+    await takeoverIntervalHandler(server, masterSpotify);
     const interval = setIntervalAsync(() => takeoverIntervalHandler(server, masterSpotify), 2500);
     server.activeTakeoverInfo = { user: authenticatedUser, interval, previousPlayback: currentPlayback };
     Persistence.addTakeoverEvent(authenticatedUser.spotify);
@@ -46,7 +47,7 @@ export function initTakeover(server: SpotifyTakeoverServer, route: string) {
       endTakeover(server, interval);
     }, server.takeoverDurationMS);
 
-    res.status(200);
+    res.status(200).send({ ok: true });
   });
 }
 
@@ -89,8 +90,9 @@ export function initStopTakeover(server: SpotifyTakeoverServer, route: string) {
       res.status(401).send({ error: "Only the takeover user can terminate the takeover" });
       return;
     }
-    console.log("jojo");
-    endTakeover(server, server.activeTakeoverInfo.interval);
+    console.log("Stopping takeover");
+    await endTakeover(server, server.activeTakeoverInfo.interval);
+    res.status(200).send({ ok: true });
   });
 }
 
@@ -108,7 +110,7 @@ const takeoverIntervalHandler = async (server: SpotifyTakeoverServer, masterSpot
     const slavePlayback = await server.linkedSpotify.client.getCurrentPlayback();
 
     if (!slavePlayback.is_playing || slavePlayback.item?.id !== masterPlayback.item.id) {
-      await server.linkedSpotify.client.setCurrentPlayback(masterPlayback.item!.uri);
+      await server.linkedSpotify.client.setCurrentPlayback(masterPlayback.item!.uri, masterPlayback.context);
       await server.linkedSpotify.client.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
       //TODO: take timestamp into account to combat http request and polling point differences
     } else if (Math.abs(slavePlayback.progress_ms! - masterPlayback.progress_ms!) > 8000) {

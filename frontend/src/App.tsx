@@ -1,5 +1,5 @@
 import React from "react";
-import { CircularProgress, Grid, Snackbar } from "@material-ui/core";
+import { CircularProgress, Grid, Snackbar, DialogProps, Dialog } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import CreateSignupLink from "./Components/CreateSignupLink";
 import CurrentRoadtripDevice from "./Components/CurrentRoadtripDevice";
@@ -8,7 +8,8 @@ import AuthenticationLink from "./Components/AuthenticationPage";
 import SetDeviceCard from "./Components/SetDeviceCard";
 import Takeovercard from "./Components/TakeoverCard";
 import { InitialRequestResponse, authRequired, isOK, actions, routes, PublicUser } from "./sharedTypes";
-import SignupErrorCard from "./Components/SignupErrorPage";
+import SignupErrorCard from "./Components/SignupErrorcard";
+import LiveListenCard from "./Components/LiveListenCard";
 
 console.log("Starting in production mode ( true | false )", isProd);
 type AppState = {
@@ -20,10 +21,10 @@ type AppState = {
   activeTakeoverUser?: PublicUser;
   secretState?: boolean;
   toast?: JSX.Element;
-  alert?: JSX.Element;
   signupError?: boolean;
   playbackInfo?: SpotifyApi.CurrentlyPlayingObject;
   linkedSpotifyUser?: PublicUser;
+  userIsLiveListening?: boolean;
 };
 class App extends React.Component<{}, AppState> {
   state: AppState = {
@@ -107,6 +108,7 @@ class App extends React.Component<{}, AppState> {
         playbackInfo: res.playback,
         activeTakeoverUser: res.activeTakeoverUser,
         linkedSpotifyUser: res.linkedSpotifyUser,
+        userIsLiveListening: res.userIsLiveListening,
       });
     }
   }
@@ -137,7 +139,10 @@ class App extends React.Component<{}, AppState> {
     return (
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6}>
-          <CurrentRoadtripDevice playbackInfo={this.state.playbackInfo} />
+          <CurrentRoadtripDevice
+            playbackInfo={this.state.playbackInfo}
+            linkedSpotifyUser={this.state.linkedSpotifyUser}
+          />
         </Grid>
         <Grid item xs={12} sm={6}>
           <Takeovercard
@@ -145,6 +150,14 @@ class App extends React.Component<{}, AppState> {
             activeTakeoverUser={this.state.activeTakeoverUser}
             currentUserSpotifyId={this.state.user?.spotify.id}
             requestServerStateUpdate={this.requestServerStateUpdate}
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <LiveListenCard
+            slavePermissionLink={this.state.slavePermissionLink}
+            requestServerStateUpdate={this.requestServerStateUpdate}
+            userIsLiveListening={!!this.state.userIsLiveListening}
+            currentlyPlayingMusic={!!this.state.playbackInfo}
           />
         </Grid>
         <Grid item xs={12} sm={6}>

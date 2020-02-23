@@ -2,6 +2,7 @@ import SpotifyTakeoverServer from "../SpotifyTakeover";
 import Persistence from "../../wrappers/MongoDB";
 import { SpotifyClient } from "../../wrappers/SpotifyAPI";
 import { endTakeover } from "./takeover";
+import { endLiveListen } from "./liveListen";
 
 export function initLinkSpotify(server: SpotifyTakeoverServer, route: string) {
   server.app.get(route, async (req, res) => {
@@ -44,7 +45,11 @@ export function initUnlinkSpotify(server: SpotifyTakeoverServer, route: string) 
       return;
     }
     server.linkedSpotify = undefined;
-    if (server.activeTakeoverInfo) endTakeover(server, server.activeTakeoverInfo?.interval);
+    if (server.activeTakeoverInfo) endTakeover(server, server.activeTakeoverInfo.interval);
+    Object.entries(server.liveListen).forEach(([liveListenerAuthenticityToken, liveListenerInfo]) => {
+      if (!liveListenerInfo) return;
+      endLiveListen(server, liveListenerAuthenticityToken, liveListenerInfo.interval);
+    });
     res.status(200).send({ ok: true });
   });
 }

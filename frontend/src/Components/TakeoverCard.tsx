@@ -31,24 +31,24 @@ export default function Takeovercard(props: {
     props.requestServerStateUpdate();
   }
 
-  const GrantPermissionsButton = () => (
+  const GrantPermissionsButton = (
     <Button variant="contained" href={props.masterPermissionLink}>
       Grant permissions
     </Button>
   );
-  const StartTakeoverButton = () => (
+  const StartTakeoverButton = (
     <Button variant="contained" onClick={startTakeover}>
       Take it over!
     </Button>
   );
 
-  const StopTakeoverButton = () => (
+  const StopTakeoverButton = (
     <Button variant="contained" onClick={stopTakeover}>
       Stop Takeover!
     </Button>
   );
 
-  const CannotStartTakeoverButton = () => (
+  const CannotStartTakeoverButton = (
     <Button variant="contained" disabled>
       There is another active takeover...
     </Button>
@@ -57,13 +57,14 @@ export default function Takeovercard(props: {
   const takeoverIsByUser =
     !!props.currentUserSpotifyId && props.activeTakeoverUser?.spotify.id === props.currentUserSpotifyId;
   console.log(props);
-  const AppropriateButton = props.masterPermissionLink
-    ? GrantPermissionsButton
-    : takeoverIsByUser
-    ? StopTakeoverButton
-    : props.activeTakeoverUser
-    ? CannotStartTakeoverButton
-    : StartTakeoverButton;
+  const AppropriateButton = () =>
+    props.masterPermissionLink
+      ? GrantPermissionsButton
+      : takeoverIsByUser
+      ? StopTakeoverButton
+      : props.activeTakeoverUser
+      ? CannotStartTakeoverButton
+      : StartTakeoverButton;
 
   return (
     <Card>

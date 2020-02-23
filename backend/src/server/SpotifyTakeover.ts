@@ -13,18 +13,27 @@ import { initLinkSpotify, initUnlinkSpotify } from "./routes/linkSpotifyAccount"
 import { initInitialRoute } from "./routes/initial";
 import { initTakeover, initStopTakeover } from "./routes/takeover";
 import { initAfterSpotifyAuth } from "./routes/afterSpotifyAuth";
+import { initLiveListen, initStopLiveListen } from "./routes/liveListen";
 import { actions, routes } from "../sharedTypes";
-import SpotifyWebApi from "spotify-web-api-node";
 require("dotenv").config();
 
 export default class SpotifyTakeoverServer {
   public app: Application;
-  public readonly takeoverDurationMS = 60000;
+  public readonly takeoverDurationMS = 600_000; // 10 min
+  public readonly maxKeepAliveMS = 36_000_000; // 10 h
   public activeTakeoverInfo?: {
     user: FullUser;
     interval: SetIntervalAsyncTimer;
     previousPlayback: SpotifyApi.CurrentlyPlayingObject;
   };
+  public liveListen: {
+    [authenticityToken: string]:
+      | {
+          user: FullUser;
+          interval: SetIntervalAsyncTimer;
+        }
+      | undefined;
+  } = {};
   public linkedSpotify?: { client: SpotifyClient; user: FullUser };
   constructor(public applicationSpotify: SpotifyClient, public frontendUrl: string, private developmentMode: boolean) {
     this.app = express();
@@ -66,6 +75,9 @@ export default class SpotifyTakeoverServer {
 
       res.status(200).send(`${this.frontendUrl}?action=${actions.startSignup}&tempCode=${tempCode}`);
     });
+
+    initLiveListen(this, routes.liveListen);
+    initStopLiveListen(this, routes.stopLiveListen);
     initTakeover(this, routes.takeover);
     initStopTakeover(this, routes.stopTakeover);
     initLinkSpotify(this, routes.linkSpotifyAccount);

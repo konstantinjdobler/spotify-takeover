@@ -7,6 +7,7 @@ export type OKInitialRequestResponse = {
   activeTakeoverUser?: PublicUser;
   masterPermissionLink?: string;
   slavePermissionLink?: string;
+  userIsLiveListening?: boolean;
 };
 
 export type PublicUser = { name: string; spotify: SpotifyApi.UserObjectPublic; isRoadtripParticipant: boolean };
@@ -31,6 +32,8 @@ export const actions = {
 };
 
 export const routes = {
+  stopLiveListen: "/api/stop-live-listen",
+  liveListen: "/api/live-listen",
   unlinkSpotifyAccount: "/api/unlink-spotify-account",
   linkSpotifyAccount: "/api/change-roadtrip-device",
   afterSpotifyAuth: "/api/after-spotify-auth",
