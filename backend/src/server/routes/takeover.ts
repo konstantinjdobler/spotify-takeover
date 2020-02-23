@@ -61,12 +61,10 @@ export async function endTakeover(server: SpotifyTakeoverServer, interval: SetIn
   );
   await server.linkedSpotify?.client.setCurrentPlayback(
     server.activeTakeoverInfo!.previousPlayback.item?.uri ?? null,
+    server.activeTakeoverInfo?.previousPlayback.progress_ms,
     server.activeTakeoverInfo?.previousPlayback.context ?? undefined,
   );
-  server.activeTakeoverInfo?.previousPlayback.progress_ms &&
-    (await server.linkedSpotify?.client.seekPositionInCurrentPlayback(
-      server.activeTakeoverInfo.previousPlayback.progress_ms,
-    ));
+
   server.activeTakeoverInfo = undefined;
   console.log("Takeover ended");
 }
@@ -110,8 +108,11 @@ const takeoverIntervalHandler = async (server: SpotifyTakeoverServer, masterSpot
     const slavePlayback = await server.linkedSpotify.client.getCurrentPlayback();
 
     if (!slavePlayback.is_playing || slavePlayback.item?.id !== masterPlayback.item.id) {
-      await server.linkedSpotify.client.setCurrentPlayback(masterPlayback.item!.uri, masterPlayback.context);
-      await server.linkedSpotify.client.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
+      await server.linkedSpotify.client.setCurrentPlayback(
+        masterPlayback.item!.uri,
+        masterPlayback.progress_ms,
+        masterPlayback.context,
+      );
       //TODO: take timestamp into account to combat http request and polling point differences
     } else if (Math.abs(slavePlayback.progress_ms! - masterPlayback.progress_ms!) > 8000) {
       await server.linkedSpotify.client.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);

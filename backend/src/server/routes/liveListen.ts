@@ -26,7 +26,7 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
     const slaveSpotify = new SpotifyClient(authenticatedUser.refreshToken);
 
     await liveListenIntervalHandler(server, slaveSpotify);
-    const interval = setIntervalAsync(() => liveListenIntervalHandler(server, slaveSpotify), 20000);
+    const interval = setIntervalAsync(() => liveListenIntervalHandler(server, slaveSpotify), 8000);
 
     server.liveListen[authenticityToken] = { user: authenticatedUser, interval };
 
@@ -87,8 +87,11 @@ const liveListenIntervalHandler = async (server: SpotifyTakeoverServer, slaveSpo
     const slavePlayback = await slaveSpotify.getCurrentPlayback();
 
     if (!slavePlayback.is_playing || slavePlayback.item?.id !== masterPlayback.item.id) {
-      await slaveSpotify.setCurrentPlayback(masterPlayback.item!.uri, masterPlayback.context);
-      await slaveSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
+      await slaveSpotify.setCurrentPlayback(
+        masterPlayback.item!.uri,
+        masterPlayback.progress_ms!,
+        masterPlayback.context,
+      );
       //TODO: take timestamp into account to combat http request and polling point differences
     } else if (Math.abs(slavePlayback.progress_ms! - masterPlayback.progress_ms!) > 8000) {
       await slaveSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);

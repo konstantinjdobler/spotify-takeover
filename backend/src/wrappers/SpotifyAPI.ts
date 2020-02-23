@@ -12,7 +12,6 @@ export type SpotifyApiCredentials = {
   clientSecret: string;
   redirectUri: string;
 };
-
 export class SpotifyClient {
   engine: SpotifyWebApi;
   static spotifyCredentials: SpotifyApiCredentials;
@@ -34,17 +33,24 @@ export class SpotifyClient {
     await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
   }
 
-  async setCurrentPlayback(song: TrackURI | null, context?: SpotifyApi.ContextObject | null) {
+  async setCurrentPlayback(
+    song: TrackURI | null,
+    positionMS?: number | null,
+    context?: SpotifyApi.ContextObject | null,
+  ) {
     await this.refreshAccessToken();
     if (!song) {
       console.log("pause");
       this.engine.pause();
     } else {
       console.log("play", song);
-      if (context) {
-        this.engine.play({ context_uri: context?.uri, offset: { uri: song } }).catch(r => console.log(r));
+      if (context && context.type !== "artist") {
+        console.log("context");
+        this.engine
+          .play({ position_ms: positionMS ?? undefined, context_uri: context?.uri, offset: { uri: song } })
+          .catch(r => console.log(r));
       } else {
-        this.engine.play({ uris: [song] }).catch(r => console.log(r));
+        this.engine.play({ uris: [song], position_ms: positionMS ?? undefined }).catch(r => console.log(r));
       }
     }
   }
