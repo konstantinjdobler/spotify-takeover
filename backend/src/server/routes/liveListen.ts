@@ -27,8 +27,13 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
 
     const currentSlavePlayback = await slaveSpotify.getCurrentPlayback();
 
-    await liveListenIntervalHandler(server, slaveSpotify).catch(r => console.log(r));
-    const interval = setIntervalAsync(() => liveListenIntervalHandler(server, slaveSpotify), 10000);
+    await liveListenIntervalHandler(server, slaveSpotify, authenticatedUser.spotify.country).catch(r =>
+      console.log("initial liveListen", r),
+    );
+    const interval = setIntervalAsync(
+      () => liveListenIntervalHandler(server, slaveSpotify, authenticatedUser.spotify.country),
+      10_000,
+    );
 
     server.liveListen[authenticityToken] = {
       user: authenticatedUser,
