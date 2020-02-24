@@ -85,7 +85,6 @@ class App extends React.Component<{}, AppState> {
     }
     await this.initial(initialRequestModifier);
     this.setState({ loading: false });
-    setInterval(this.requestServerStateUpdate, 10_000);
   }
 
   async initial(requestModifer: string) {

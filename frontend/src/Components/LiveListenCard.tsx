@@ -29,7 +29,7 @@ export default class LiveListenCard extends React.Component<
     dialogSliderValue: 15,
   };
   startLiveListen = async () => {
-    await fetch(`${API_URL}${routes.liveListen}?duration=${this.state.dialogSliderValue * 1000}`, {
+    await fetch(`${API_URL}${routes.liveListen}?duration=${this.state.dialogSliderValue * 60 * 1000}`, {
       method: "GET",
       credentials: "include",
     });

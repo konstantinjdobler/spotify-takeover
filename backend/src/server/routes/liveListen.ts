@@ -72,6 +72,15 @@ export async function endLiveListen(
   console.log("Live listen ended");
 }
 
+interface PlayingCurrentlyPlayingObject extends SpotifyApi.CurrentlyPlayingObject {
+  is_playing: true;
+  item: SpotifyApi.TrackObjectFull;
+  progress_ms: number;
+}
+function isPlaying(playback: SpotifyApi.CurrentlyPlayingObject): playback is PlayingCurrentlyPlayingObject {
+  return !!playback.is_playing && !!playback.item;
+}
+
 const liveListenIntervalHandler = async (server: SpotifyTakeoverServer, slaveSpotify: SpotifyClient) => {
   console.log("iteration of playback check");
   if (!server.linkedSpotify) {
@@ -79,22 +88,21 @@ const liveListenIntervalHandler = async (server: SpotifyTakeoverServer, slaveSpo
     return;
   }
   const masterPlayback = await server.linkedSpotify.client.getCurrentPlayback();
+  const slavePlayback = await slaveSpotify.getCurrentPlayback();
 
-  if (!masterPlayback.is_playing || !masterPlayback.item) {
+  if (!isPlaying(masterPlayback)) {
     console.log("master playback not playing");
-    slaveSpotify.setCurrentPlayback(null);
+    if (isPlaying(slavePlayback)) slaveSpotify.setCurrentPlayback(null);
   } else {
-    const slavePlayback = await slaveSpotify.getCurrentPlayback();
-
-    if (!slavePlayback.is_playing || slavePlayback.item?.id !== masterPlayback.item.id) {
+    if (!isPlaying(slavePlayback) || slavePlayback.item.id !== masterPlayback.item.id) {
       await slaveSpotify.setCurrentPlayback(
-        masterPlayback.item!.uri,
-        masterPlayback.progress_ms!,
+        masterPlayback.item.uri,
+        masterPlayback.progress_ms,
         masterPlayback.context,
       );
       //TODO: take timestamp into account to combat http request and polling point differences
-    } else if (Math.abs(slavePlayback.progress_ms! - masterPlayback.progress_ms!) > 8000) {
-      await slaveSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms!);
+    } else if (Math.abs(slavePlayback.progress_ms - masterPlayback.progress_ms) > 8000) {
+      await slaveSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms);
     }
     console.log("master playback", masterPlayback.item.name, masterPlayback.progress_ms);
     console.log("slave playback", slavePlayback.item?.name, slavePlayback.progress_ms);
