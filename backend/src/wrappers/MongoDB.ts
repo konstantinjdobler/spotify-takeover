@@ -80,7 +80,7 @@ class MongoDBWrapper {
 
   async addUser(
     authenticityToken: string,
-    userInfo: SpotifyApi.UserObjectPublic,
+    userInfo: SpotifyApi.UserObjectPrivate,
     refreshToken: string,
     name: string,
     isRoadtripParticipant: boolean,

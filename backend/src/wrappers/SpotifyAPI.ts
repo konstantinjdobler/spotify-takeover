@@ -108,19 +108,19 @@ export class SpotifyClient {
   getSlaveAuthUrl(authenticityToken: string) {
     const state: SpotifyCallbackState = { slaveScope: true, authenticityToken };
     return this.engine.createAuthorizeURL(
-      ["user-modify-playback-state", "user-read-playback-state", "user-read-currently-playing"],
+      ["user-modify-playback-state", "user-read-playback-state", "user-read-currently-playing", "user-read-private"],
       JSON.stringify(state),
       true,
     );
   }
   getUserSpotifyAuthUrl(tempCode: string) {
     const state: SpotifyCallbackState = { tempCode, basicScope: true };
-    return this.engine.createAuthorizeURL(["user-read-email"], JSON.stringify(state), true);
+    return this.engine.createAuthorizeURL(["user-read-private"], JSON.stringify(state), true);
   }
   getMasterAuthUrl(authenticityToken: string) {
     const state: SpotifyCallbackState = { authenticityToken, masterScope: true };
     return this.engine.createAuthorizeURL(
-      ["user-read-currently-playing", "user-read-playback-state"],
+      ["user-read-currently-playing", "user-read-playback-state", "user-read-private"],
       JSON.stringify(state),
       true,
     );

@@ -10,7 +10,7 @@ export type OKInitialRequestResponse = {
   userIsLiveListening?: boolean;
 };
 
-export type PublicUser = { name: string; spotify: SpotifyApi.UserObjectPublic; isRoadtripParticipant: boolean };
+export type PublicUser = { name: string; spotify: SpotifyApi.UserObjectPrivate; isRoadtripParticipant: boolean };
 
 export type AuthRequiredInitialRequestResponse = { authRequired?: string };
 
