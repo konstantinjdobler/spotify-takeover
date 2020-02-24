@@ -31,6 +31,7 @@ export default class SpotifyTakeoverServer {
       | {
           user: FullUser;
           interval: SetIntervalAsyncTimer;
+          previousPlayback: SpotifyApi.CurrentlyPlayingObject;
         }
       | undefined;
   } = {};

@@ -14,6 +14,9 @@ export type SpotifyApiCredentials = {
 };
 export class SpotifyClient {
   engine: SpotifyWebApi;
+  static accessTokenDict: {
+    [refreshToken: string]: { access_token: string; expirationEpoch: number } | undefined;
+  } = {};
   static spotifyCredentials: SpotifyApiCredentials;
   static setCredentials(credentials: SpotifyApiCredentials) {
     this.spotifyCredentials = credentials;
@@ -30,9 +33,28 @@ export class SpotifyClient {
   }
   //TODO: implement refreshing only when necessary
   async refreshAccessToken() {
+    const nowEpoch = Date.now() + 120_000;
+    const cachedAccesTokenEntry = SpotifyClient.accessTokenDict[this.engine.getRefreshToken()!];
+    if (cachedAccesTokenEntry && nowEpoch < cachedAccesTokenEntry.expirationEpoch  ) {
+      console.log(
+        "Saved refresh, expires at:",
+        new Date(cachedAccesTokenEntry.expirationEpoch).toString(),
+        '"now":',
+        new Date(nowEpoch).toString(),
+      );
+      return;
+    }
     await this.engine
       .refreshAccessToken()
-      .then(result => this.engine.setAccessToken(result.body.access_token))
+      .then(result => {
+        const access_token = result.body.access_token;
+        this.engine.setAccessToken(result.body.access_token);
+        SpotifyClient.accessTokenDict[this.engine.getRefreshToken()!] = {
+          access_token,
+          expirationEpoch: Date.now() + result.body.expires_in * 1000,
+        };
+        console.log("##!!@@: valididty duration:", result.body.expires_in);
+      })
       .catch(error => {
         console.log("refresh error", error);
       });

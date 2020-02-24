@@ -22,13 +22,19 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
     }
 
     const liveListenDuration = parseFloat(req.query.duration);
-    console.log("Starting live listen");
+    console.log("Starting live listen", liveListenDuration);
     const slaveSpotify = new SpotifyClient(authenticatedUser.refreshToken);
 
-    await liveListenIntervalHandler(server, slaveSpotify);
-    const interval = setIntervalAsync(() => liveListenIntervalHandler(server, slaveSpotify), 8000);
+    const currentSlavePlayback = await slaveSpotify.getCurrentPlayback();
 
-    server.liveListen[authenticityToken] = { user: authenticatedUser, interval };
+    await liveListenIntervalHandler(server, slaveSpotify).catch(r => console.log(r));
+    const interval = setIntervalAsync(() => liveListenIntervalHandler(server, slaveSpotify), 10000);
+
+    server.liveListen[authenticityToken] = {
+      user: authenticatedUser,
+      interval,
+      previousPlayback: currentSlavePlayback,
+    };
 
     setTimeout(() => {
       endLiveListen(server, authenticityToken, interval);
@@ -68,6 +74,13 @@ export async function endLiveListen(
   if (interval.id === INTERVAL_CLEARED_INDICATOR) return;
   await clearIntervalAsync(interval);
   interval.id = INTERVAL_CLEARED_INDICATOR;
+  const listenerSpotify = new SpotifyClient(server.liveListen[authenticityToken]!.user.slaveRefreshToken!);
+  await listenerSpotify.setCurrentPlayback(
+    server.liveListen[authenticityToken]!.previousPlayback.item?.uri ?? null,
+    server.liveListen[authenticityToken]!.previousPlayback.progress_ms,
+    server.liveListen[authenticityToken]!.previousPlayback.context,
+  );
+
   server.liveListen[authenticityToken] = undefined;
   console.log("Live listen ended");
 }
@@ -82,12 +95,14 @@ function isPlaying(playback: SpotifyApi.CurrentlyPlayingObject): playback is Pla
 }
 
 const liveListenIntervalHandler = async (server: SpotifyTakeoverServer, slaveSpotify: SpotifyClient) => {
-  console.log("iteration of playback check");
+  console.log("iteration of playback check ########");
   if (!server.linkedSpotify) {
     console.log("No master spotify available");
     return;
   }
   const masterPlayback = await server.linkedSpotify.client.getCurrentPlayback();
+  console.log("Getting slave playback");
+
   const slavePlayback = await slaveSpotify.getCurrentPlayback();
 
   if (!isPlaying(masterPlayback)) {
@@ -95,6 +110,8 @@ const liveListenIntervalHandler = async (server: SpotifyTakeoverServer, slaveSpo
     if (isPlaying(slavePlayback)) slaveSpotify.setCurrentPlayback(null);
   } else {
     if (!isPlaying(slavePlayback) || slavePlayback.item.id !== masterPlayback.item.id) {
+      console.log("OK US", masterPlayback.item?.available_markets?.includes("US"));
+      console.log(await slaveSpotify.getAvailableDevices());
       await slaveSpotify.setCurrentPlayback(
         masterPlayback.item.uri,
         masterPlayback.progress_ms,
@@ -105,6 +122,6 @@ const liveListenIntervalHandler = async (server: SpotifyTakeoverServer, slaveSpo
       await slaveSpotify.seekPositionInCurrentPlayback(masterPlayback.progress_ms);
     }
     console.log("master playback", masterPlayback.item.name, masterPlayback.progress_ms);
-    console.log("slave playback", slavePlayback.item?.name, slavePlayback.progress_ms);
+    console.log("slave playback", slavePlayback.item?.name, slavePlayback.progress_ms, "############\n");
   }
 };
