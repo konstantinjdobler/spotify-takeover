@@ -31,20 +31,20 @@ export class SpotifyClient {
   static with(refreshToken: string) {
     return new SpotifyClient(refreshToken);
   }
-  //TODO: implement refreshing only when necessary
   async refreshAccessToken() {
     const nowEpoch = Date.now() + 120_000;
     const cachedAccesTokenEntry = SpotifyClient.accessTokenDict[this.engine.getRefreshToken()!];
-    if (cachedAccesTokenEntry && nowEpoch < cachedAccesTokenEntry.expirationEpoch  ) {
-      console.log(
-        "Saved refresh, expires at:",
-        new Date(cachedAccesTokenEntry.expirationEpoch).toString(),
-        '"now":',
-        new Date(nowEpoch).toString(),
-      );
+    if (cachedAccesTokenEntry && nowEpoch < cachedAccesTokenEntry.expirationEpoch) {
+      // console.log(
+      //   "Saved refresh, expires at:",
+      //   new Date(cachedAccesTokenEntry.expirationEpoch).toString(),
+      //   '"now":',
+      //   new Date(nowEpoch).toString(),
+      // );
+      this.engine.setAccessToken(cachedAccesTokenEntry.access_token);
       return;
     }
-    await this.engine
+    return this.engine
       .refreshAccessToken()
       .then(result => {
         const access_token = result.body.access_token;
@@ -53,7 +53,20 @@ export class SpotifyClient {
           access_token,
           expirationEpoch: Date.now() + result.body.expires_in * 1000,
         };
-        console.log("##!!@@: valididty duration:", result.body.expires_in);
+        console.log(
+          "##!!@@: valididty duration:",
+          result.body.expires_in,
+          "until:",
+          new Date(SpotifyClient.accessTokenDict[this.engine.getRefreshToken()!]!.expirationEpoch).toString(),
+          "access_token:",
+          access_token,
+          "engine access_token:",
+          this.engine.getAccessToken(),
+          "stuff",
+          SpotifyClient.accessTokenDict,
+          "body",
+          result.body,
+        );
       })
       .catch(error => {
         console.log("refresh error", error);
@@ -68,16 +81,18 @@ export class SpotifyClient {
     await this.refreshAccessToken();
     if (!song) {
       console.log("pause");
-      this.engine.pause();
+      return this.engine.pause().catch(r => console.log("setCurrentPlayback pause error:", r));
     } else {
-      console.log("play", song);
+      console.log("play", song, "position_ms:", positionMS);
       if (context && context.type !== "artist") {
         console.log("context");
-        this.engine
-          .play({ position_ms: positionMS ?? undefined, context_uri: context?.uri, offset: { uri: song } })
-          .catch(r => console.log(r));
+        return this.engine
+          .play({ position_ms: positionMS ?? undefined, context_uri: context.uri, offset: { uri: song } })
+          .catch(r => console.log("setCurrentPlayback play context error:", r));
       } else {
-        this.engine.play({ uris: [song], position_ms: positionMS ?? undefined }).catch(r => console.log(r));
+        return this.engine
+          .play({ uris: [song], position_ms: positionMS ?? undefined })
+          .catch(r => console.log("setCurrentPlayback play error:", r));
       }
     }
   }
@@ -85,24 +100,26 @@ export class SpotifyClient {
   async seekPositionInCurrentPlayback(postionInMS: number) {
     await this.refreshAccessToken();
     console.log(`seeking ${postionInMS} in current track`);
-    this.engine.seek(postionInMS).catch(r => console.log(r));
+    return this.engine.seek(postionInMS).catch(r => console.log("seek error", r));
   }
-  async getCurrentPlayback(): Promise<SpotifyApi.CurrentlyPlayingObject> {
+  async getCurrentPlayback(relinkToMarket?: string) {
     await this.refreshAccessToken();
-    const s = await this.engine.getMyCurrentPlaybackState().catch(r => {
-      console.log(r);
-      return undefined;
-    });
-    return s!.body;
+    return this.engine
+      .getMyCurrentPlaybackState({ market: relinkToMarket })
+      .then(result => result.body)
+      .catch(r => console.log("getPlayback error:", r)) as Promise<SpotifyApi.CurrentlyPlayingObject>;
   }
 
   async getRefreshToken(code: string) {
     return (await this.engine.authorizationCodeGrant(code)).body.refresh_token;
   }
 
-  async getAvailableDevices() {
+  async getAvailableDevices(): Promise<SpotifyApi.UserDevice[]> {
     await this.refreshAccessToken();
-    return (await this.engine.getMyDevices()).body.devices;
+    return this.engine
+      .getMyDevices()
+      .then(result => result.body.devices)
+      .catch(r => console.log("getDevices error:", r)) as Promise<SpotifyApi.UserDevice[]>;
   }
 
   getSlaveAuthUrl(authenticityToken: string) {
@@ -128,7 +145,9 @@ export class SpotifyClient {
 
   async getUserInfo() {
     await this.refreshAccessToken();
-    const userInfo = await this.engine.getMe();
-    return userInfo.body;
+    return this.engine
+      .getMe()
+      .then(result => result.body)
+      .catch(r => console.log("getUserInfo error", r)) as Promise<SpotifyApi.UserObjectPrivate>;
   }
 }
