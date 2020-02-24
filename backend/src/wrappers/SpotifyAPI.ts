@@ -30,7 +30,12 @@ export class SpotifyClient {
   }
   //TODO: implement refreshing only when necessary
   async refreshAccessToken() {
-    await this.engine.refreshAccessToken().then(result => this.engine.setAccessToken(result.body.access_token));
+    await this.engine
+      .refreshAccessToken()
+      .then(result => this.engine.setAccessToken(result.body.access_token))
+      .catch(error => {
+        console.log("refresh error", error);
+      });
   }
 
   async setCurrentPlayback(
