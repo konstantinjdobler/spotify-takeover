@@ -1,6 +1,6 @@
 import React from "react";
 import { CircularProgress, Grid, Snackbar, DialogProps, Dialog } from "@material-ui/core";
-import { Alert } from "@material-ui/lab";
+import { Alert, AlertProps, Color } from "@material-ui/lab";
 import CreateSignupLink from "./Components/CreateSignupLink";
 import CurrentRoadtripDevice from "./Components/CurrentRoadtripDevice";
 import { removeActionFromUrl, isProd, API_URL } from "./utils";
@@ -50,13 +50,17 @@ class App extends React.Component<{}, AppState> {
     return `?tempCode=${tempCode}`;
   }
 
-  permissionGrantedAction = (urlParams: URLSearchParams) => {
+  showToast = (content: string, severity: Color) => {
     const alert = (
-      <Alert severity="success" onClose={this.closeToast}>
-        Permission granted!
+      <Alert severity={severity} onClose={this.closeToast}>
+        {content}
       </Alert>
     );
     this.setState({ toast: alert });
+  };
+
+  permissionGrantedAction = (urlParams: URLSearchParams) => {
+    this.showToast("Permission granted!", "success");
   };
 
   actionMapper: { [actionString: string]: (urlParams: URLSearchParams) => void | string } = {
