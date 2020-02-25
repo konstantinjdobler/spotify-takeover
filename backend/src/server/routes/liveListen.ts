@@ -20,6 +20,12 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
       res.status(403).send({ error: "No linked spotify" });
       return;
     }
+    if (server.activeTakeoverInfo?.user.authenticityToken === authenticityToken) {
+      res.status(403).send({ error: "Cannot Live Listen while in Takeover" });
+    }
+    if (server.linkedSpotify.user.authenticityToken === authenticityToken) {
+      res.status(403).send({ error: "Cannot Live Listen to yourself" });
+    }
 
     const liveListenDuration = parseFloat(req.query.duration);
     console.log("Starting live listen", liveListenDuration);
