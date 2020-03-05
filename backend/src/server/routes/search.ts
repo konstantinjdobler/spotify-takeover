@@ -48,6 +48,11 @@ export function initSongInjection(server: SpotifyTakeoverServer, route: string) 
     }
 
     const previousPlayback = await server.linkedSpotify.client.getCurrentPlayback();
+    if (server.activeWishedSongInfo && server.activeWishedSongInfo.wishedSong.uri === previousPlayback.item?.uri) {
+      res.status(400).send({ error: "Requested song is currently playing" });
+      return;
+    }
+
     const injectionSong = (await server.linkedSpotify.client.engine.getTrack(songID)).body;
     if (previousPlayback && previousPlayback.item) {
       setTimeout(async () => {

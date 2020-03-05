@@ -148,7 +148,7 @@ class App extends React.Component<{}, AppState> {
 
   loadingIndicator() {
     return (
-      <Grid container justify="center">
+      <Grid container alignItems="center" justify="center" style={{ height: "100vh" }}>
         <Grid item>
           <CircularProgress size={100} />
         </Grid>
