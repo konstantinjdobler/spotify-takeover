@@ -12,7 +12,7 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
       res.status(401).send({ error: "Unauthorized" });
       return;
     }
-    if (!authenticatedUser.slaveRefreshToken) {
+    if (!authenticatedUser.slaveRefreshToken || !authenticatedUser.capabilities.liveListen) {
       res.status(403).send({ error: "Insufficient permission" });
       return;
     }
@@ -20,11 +20,10 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
       res.status(403).send({ error: "No linked spotify" });
       return;
     }
-    if (server.activeTakeoverInfo?.user.authenticityToken === authenticityToken) {
-      res.status(403).send({ error: "Cannot Live Listen while in Takeover" });
-    }
+
     if (server.linkedSpotify.user.authenticityToken === authenticityToken) {
       res.status(403).send({ error: "Cannot Live Listen to yourself" });
+      return;
     }
 
     const liveListenDuration = parseFloat(req.query.duration);
@@ -123,7 +122,7 @@ const liveListenIntervalHandler = async (
   if (!isPlaying(masterPlayback) || !masterPlayback.item.is_playable) {
     console.log("master playback not playing, playable in slave market:", masterPlayback.item?.is_playable);
     if (isPlaying(slavePlayback) && Math.abs(slavePlayback.item.duration_ms - slavePlayback.progress_ms) > 2000)
-      slaveSpotify.setCurrentPlayback(null);
+      await slaveSpotify.setCurrentPlayback(null);
   } else {
     if (!isPlaying(slavePlayback) || slavePlayback.item.id !== masterPlayback.item.id) {
       console.log(await slaveSpotify.getAvailableDevices());

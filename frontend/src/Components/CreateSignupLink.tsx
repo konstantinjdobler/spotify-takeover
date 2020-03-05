@@ -1,11 +1,25 @@
 import React from "react";
-import { Card, CardContent, CardActions, TextField, FormControlLabel, Checkbox, Button } from "@material-ui/core";
+import {
+  Card,
+  CardContent,
+  CardActions,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Button,
+  Input,
+} from "@material-ui/core";
 import { API_URL } from "../utils";
-import { routes } from "../sharedTypes";
-export default class CreateSignupLink extends React.Component<{}, { name: string; isRoadtripParticipant: boolean }> {
+import { routes, UNLIMITED_SONGS_NUMBER } from "../sharedTypes";
+export default class CreateSignupLink extends React.Component<
+  {},
+  { name: string; linkSpotify: boolean; liveListen: boolean; wishSongs: number }
+> {
   state = {
     name: "",
-    isRoadtripParticipant: false,
+    linkSpotify: false,
+    liveListen: false,
+    wishSongs: 0,
   };
   render() {
     return (
@@ -20,16 +34,45 @@ export default class CreateSignupLink extends React.Component<{}, { name: string
           <FormControlLabel
             control={
               <Checkbox
-                checked={this.state.isRoadtripParticipant}
-                onChange={(e, newValue) => this.setState({ isRoadtripParticipant: newValue })}
+                checked={this.state.linkSpotify}
+                onChange={(e, newValue) =>
+                  this.setState({ linkSpotify: true, liveListen: true, wishSongs: UNLIMITED_SONGS_NUMBER })
+                }
               />
             }
-            label="First Class Citizen"
+            label="Roadtrip Participant"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={this.state.linkSpotify}
+                onChange={(e, newValue) => this.setState({ linkSpotify: newValue })}
+              />
+            }
+            label="Link Spotify"
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={this.state.liveListen}
+                onChange={(e, newValue) => this.setState({ liveListen: newValue })}
+              />
+            }
+            label="Live Listen"
+          />
+          <FormControlLabel
+            control={
+              <Input
+                value={this.state.wishSongs}
+                onChange={e => this.setState({ wishSongs: parseInt(e.target.value) || 0 })}
+              />
+            }
+            label="Wish Songs Number"
           />
         </CardContent>
         <CardActions>
           <Button
-            href={`${API_URL}${routes.createSignupLink}?name=${this.state.name}&isRoadtripParticipant=${this.state.isRoadtripParticipant}`}
+            href={`${API_URL}${routes.createSignupLink}?name=${this.state.name}&liveListen=${this.state.liveListen}&linkSpotify=${this.state.linkSpotify}&wishSongs=${this.state.wishSongs}`}
           >
             Create Link
           </Button>

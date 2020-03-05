@@ -5,6 +5,7 @@ import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import { ThemeProvider } from "@material-ui/core";
 import theme from "./Theme";
+import "./index.css";
 
 ReactDOM.render(
   <ThemeProvider theme={theme}>

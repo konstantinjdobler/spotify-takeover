@@ -32,7 +32,7 @@ export function initAfterSpotifyAuth(server: SpotifyTakeoverServer, route: strin
           userInfo,
           refreshToken,
           validTempInfo.name,
-          validTempInfo.isRoadtripParticipant,
+          validTempInfo.capabilities,
         );
         console.log("Sending new authenticityToken with response", authenticityToken);
         res.redirect(server.frontendUrl + `?action=${actions.signupSuccessful}&authenticityToken=${authenticityToken}`);

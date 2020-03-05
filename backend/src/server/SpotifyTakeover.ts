@@ -11,19 +11,20 @@ import { makeID } from "./server-utils";
 import { FullUser } from "../schemas";
 import { initLinkSpotify, initUnlinkSpotify } from "./routes/linkSpotifyAccount";
 import { initInitialRoute } from "./routes/initial";
-import { initTakeover, initStopTakeover } from "./routes/takeover";
 import { initAfterSpotifyAuth } from "./routes/afterSpotifyAuth";
 import { initLiveListen, initStopLiveListen } from "./routes/liveListen";
 import { actions, routes } from "../sharedTypes";
+import { initSearch, initSongInjection } from "./routes/search";
 require("dotenv").config();
 
 export default class SpotifyTakeoverServer {
   public app: Application;
   public readonly takeoverDurationMS = 600_000; // 10 min
   public readonly maxKeepAliveMS = 36_000_000; // 10 h
-  public activeTakeoverInfo?: {
+
+  public activeWishedSongInfo?: {
     user: FullUser;
-    interval: SetIntervalAsyncTimer;
+    wishedSong: SpotifyApi.TrackObjectFull;
     previousPlayback: SpotifyApi.CurrentlyPlayingObject;
   };
   public liveListen: {
@@ -69,18 +70,19 @@ export default class SpotifyTakeoverServer {
   initRoutes() {
     this.app.get(routes.createSignupLink, async (req, res) => {
       const name = req.query.name;
-      const isRoadtripParticipant = req.query.isRoadtripParticipant;
+      const wishSongs = parseInt(req.query.wishSongs);
+      const liveListen = req.query.liveListen === "true";
+      const linkSpotify = req.query.linkSpotify === "true";
 
       const tempCode = makeID(20);
-      Persistence.addTemp(tempCode, name, isRoadtripParticipant);
+      Persistence.addTemp(tempCode, name, { wishSongs, linkSpotify, liveListen });
 
       res.status(200).send(`${this.frontendUrl}?action=${actions.startSignup}&tempCode=${tempCode}`);
     });
-
+    initSongInjection(this, routes.injectSong);
+    initSearch(this, routes.search);
     initLiveListen(this, routes.liveListen);
     initStopLiveListen(this, routes.stopLiveListen);
-    initTakeover(this, routes.takeover);
-    initStopTakeover(this, routes.stopTakeover);
     initLinkSpotify(this, routes.linkSpotifyAccount);
     initUnlinkSpotify(this, routes.unlinkSpotifyAccount);
     initInitialRoute(this, routes.initial);

@@ -1,4 +1,4 @@
-import { PublicUser } from "./sharedTypes";
+import { PublicUser, UserCapabilities } from "./sharedTypes";
 
 /**
  * IMPORTANT: Ensure the private property list up-to-date with the actual interface
@@ -24,19 +24,15 @@ export interface Temp {
   tempCode: string;
   name: string;
   used: boolean;
-  isRoadtripParticipant: boolean;
+  capabilities: UserCapabilities;
 }
 
-export type TakeoverEvent = {
-  spotifyUserID: string;
+export type SongInjectionEvent = {
+  authenticityToken: string;
   timestamp: string;
-  orderedSongs: PlaybackEvent[];
+  songURI: string;
 };
 export type TrackURI = string;
-export type PlaybackEvent = {
-  song: TrackURI;
-  duration: number;
-};
 
 export type SpotifyCallbackState =
   | {

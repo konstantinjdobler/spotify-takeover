@@ -20,19 +20,25 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
           ? stripPrivateInfoFromUser(server.linkedSpotify!.user)
           : undefined;
         const playback = await server.linkedSpotify?.client.getCurrentPlayback();
-        const activeTakeoverUser = server.activeTakeoverInfo
-          ? stripPrivateInfoFromUser(server.activeTakeoverInfo.user)
+        if (server.activeWishedSongInfo?.wishedSong.uri !== playback?.item?.uri)
+          server.activeWishedSongInfo = undefined;
+        const activeWishedSongInfo = server.activeWishedSongInfo
+          ? { user: stripPrivateInfoFromUser(server.activeWishedSongInfo.user) }
           : undefined;
         const userIsLiveListening = !!server.liveListen[authenticityToken];
+        const wishSongsLeft =
+          authenticatedUser.capabilities.wishSongs -
+          (await Persistence.totalSongInjectionsForUser(authenticatedUser.authenticityToken));
         const response: InitialRequestResponse = {
           ok: true,
           user: stripPrivateInfoFromUser(authenticatedUser),
           slavePermissionLink,
           masterPermissionLink,
-          activeTakeoverUser,
           playback,
           linkedSpotifyUser,
           userIsLiveListening,
+          activeWishedSongInfo,
+          wishSongsLeft,
         };
         res.status(200).send(response);
         return;

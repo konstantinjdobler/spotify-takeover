@@ -13,13 +13,14 @@ import {
   DialogContentText,
 } from "@material-ui/core";
 import { API_URL } from "../utils";
-import { routes, PublicUser } from "../sharedTypes";
+import { routes } from "../sharedTypes";
 
 export default class LiveListenCard extends React.Component<
   {
     slavePermissionLink?: string;
     userIsLiveListening: boolean;
     currentlyPlayingMusic: boolean;
+    permission: boolean;
     requestServerStateUpdate: () => void;
   },
   { dialogOpen: boolean; dialogSliderValue: number }
@@ -47,18 +48,18 @@ export default class LiveListenCard extends React.Component<
   };
 
   GrantPermissionsButton = (
-    <Button variant="contained" href={this.props.slavePermissionLink}>
+    <Button variant="outlined" color="primary" href={this.props.slavePermissionLink}>
       Grant permissions
     </Button>
   );
   StartLiveListenButton = (
-    <Button variant="contained" onClick={() => this.setState({ dialogOpen: true })}>
+    <Button variant="outlined" color="primary" onClick={() => this.setState({ dialogOpen: true })}>
       Start listening!
     </Button>
   );
 
   StopLiveListenButton = (
-    <Button variant="contained" onClick={this.stopLiveListen}>
+    <Button variant="outlined" color="primary" onClick={this.stopLiveListen}>
       Stop live listening!
     </Button>
   );
@@ -102,6 +103,7 @@ export default class LiveListenCard extends React.Component<
       <DialogActions>
         <Button
           variant="contained"
+          color="primary"
           onClick={() => {
             this.startLiveListen();
             this.setState({ dialogOpen: false });
@@ -132,12 +134,23 @@ export default class LiveListenCard extends React.Component<
       : this.CannotLiveListenButton;
 
   render() {
+    if (!this.props.permission) {
+      return (
+        <Card elevation={0}>
+          <CardContent>
+            <Typography variant="body1" color="textPrimary">
+              Unfortunately you can't use this feature.
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    }
     return (
-      <Card>
+      <Card elevation={0}>
         <CardContent>
-          <Typography variant="h3">Start listening to the roadtrip music!</Typography>
           <Typography variant="body1" color="textSecondary">
-            This will mirror every song played by us in our car to your spotify. Have fun!
+            This will magically play every song we are listening to on your spotify account! Don't worry you can always
+            stop listening if you get sick of our music...
           </Typography>
           {this.props.slavePermissionLink && (
             <Typography variant="body1" color="textPrimary">

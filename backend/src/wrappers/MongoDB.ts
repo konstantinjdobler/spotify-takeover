@@ -1,5 +1,6 @@
 import { MongoClient } from "mongodb";
-import { FullUser, TakeoverEvent, Temp } from "../schemas";
+import { FullUser, Temp, SongInjectionEvent } from "../schemas";
+import { UserCapabilities } from "src/sharedTypes";
 require("dotenv").config();
 
 class MongoDBWrapper {
@@ -16,33 +17,28 @@ class MongoDBWrapper {
     });
   }
 
-  async userHasAlreadyHadTakeoverToday(spotifyUserID: string) {
+  async totalSongInjectionsForUser(authenticityToken: string) {
     const db = await this.connectToDB();
-    const result = await db.collection<TakeoverEvent>("takeoverEvents").findOne({
-      spotifyUserID: spotifyUserID,
-      timestamp: new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" }),
+    return db.collection<SongInjectionEvent>("songInjections").countDocuments({
+      authenticityToken: authenticityToken,
     });
-    return result !== null;
   }
-  async addTakeoverEvent(spotifyUserInfo: SpotifyApi.UserObjectPublic) {
+  async addSongInjection(userInfo: FullUser, songURI: string) {
     const db = await this.connectToDB();
-    const takeoverEvent: TakeoverEvent = {
+    const takeoverEvent: SongInjectionEvent = {
       timestamp: new Date().toLocaleDateString("en-US", { timeZone: "America/Los_Angeles" }),
-      spotifyUserID: spotifyUserInfo.id,
-      orderedSongs: [],
+      authenticityToken: userInfo.authenticityToken,
+      songURI,
     };
 
-    const result = await db.collection<TakeoverEvent>("takeoverEvents").insertOne(takeoverEvent);
+    const result = await db.collection<SongInjectionEvent>("songInjections").insertOne(takeoverEvent);
 
-    console.log(
-      "Added new takeover event for user:" + spotifyUserInfo.display_name || spotifyUserInfo.id + ". MongoDB result:",
-      result.result.ok,
-    );
+    console.log("Added new song injection event for user:" + userInfo.name + ". MongoDB result:", result.result.ok);
   }
 
-  async addTemp(tempCode: string, name: string, isRoadtripParticipant: boolean) {
+  async addTemp(tempCode: string, name: string, capabilities: UserCapabilities) {
     const db = await this.connectToDB();
-    db.collection<Temp>("temp").insertOne({ tempCode, name, isRoadtripParticipant, used: false });
+    db.collection<Temp>("temp").insertOne({ tempCode, name, capabilities, used: false });
   }
 
   async validateTempCode(tempCode: string) {
@@ -83,14 +79,14 @@ class MongoDBWrapper {
     userInfo: SpotifyApi.UserObjectPrivate,
     refreshToken: string,
     name: string,
-    isRoadtripParticipant: boolean,
+    capabilities: UserCapabilities,
   ) {
     const db = await this.connectToDB();
     const operation = await db
       .collection<FullUser>("users")
       .replaceOne(
         { "spotify.id": userInfo.id },
-        { authenticityToken, spotify: userInfo, refreshToken, name, isRoadtripParticipant },
+        { authenticityToken, spotify: userInfo, refreshToken, name, capabilities },
         { upsert: true },
       );
     console.log("Added new user " + userInfo.id + ". MongoDB result:", operation.result.ok);

@@ -73,6 +73,14 @@ export class SpotifyClient {
       });
   }
 
+  async search(song: string, artist?: string) {
+    await this.refreshAccessToken();
+    let query = "track:" + song;
+    if (artist) query += " artist:" + artist;
+    console.log(query);
+    // const query = [artist, song].join(" ");
+    return this.engine.searchTracks(query, { limit: 5 });
+  }
   async setCurrentPlayback(
     song: TrackURI | null,
     positionMS?: number | null,

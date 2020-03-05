@@ -4,13 +4,24 @@ export type OKInitialRequestResponse = {
   playback?: SpotifyApi.CurrentlyPlayingObject;
   linkedSpotifyUser?: PublicUser;
   user: PublicUser;
-  activeTakeoverUser?: PublicUser;
   masterPermissionLink?: string;
   slavePermissionLink?: string;
   userIsLiveListening?: boolean;
+  activeWishedSongInfo?: { user: PublicUser };
+  wishSongsLeft?: number;
+};
+export type UserCapabilities = {
+  linkSpotify: boolean;
+  wishSongs: number;
+  liveListen: boolean;
+};
+export type PublicUser = {
+  name: string;
+  spotify: SpotifyApi.UserObjectPrivate;
+  capabilities: UserCapabilities;
 };
 
-export type PublicUser = { name: string; spotify: SpotifyApi.UserObjectPrivate; isRoadtripParticipant: boolean };
+export const UNLIMITED_SONGS_NUMBER = 100_000;
 
 export type AuthRequiredInitialRequestResponse = { authRequired?: string };
 
@@ -32,6 +43,8 @@ export const actions = {
 };
 
 export const routes = {
+  injectSong: "/api/inject-song",
+  search: "/api/search",
   stopLiveListen: "/api/stop-live-listen",
   liveListen: "/api/live-listen",
   unlinkSpotifyAccount: "/api/unlink-spotify-account",
