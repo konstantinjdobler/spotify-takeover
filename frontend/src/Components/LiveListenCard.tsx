@@ -21,6 +21,7 @@ export default class LiveListenCard extends React.Component<
     userIsLiveListening: boolean;
     currentlyPlayingMusic: boolean;
     permission: boolean;
+    currentUserIslinked: boolean;
     requestServerStateUpdate: () => void;
   },
   { dialogOpen: boolean; dialogSliderValue: number }
@@ -140,6 +141,21 @@ export default class LiveListenCard extends React.Component<
           <CardContent>
             <Typography variant="body1" color="textPrimary">
               Unfortunately you can't use this feature.
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    }
+    if (!this.props.currentUserIslinked) {
+      return (
+        <Card elevation={0}>
+          <CardContent>
+            <Typography variant="body1" color="textPrimary">
+              You are currently linked - you don't need to use this feature..
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+              This will magically play every song we are listening to on your spotify account! Don't worry you can
+              always stop listening if you get sick of our music...
             </Typography>
           </CardContent>
         </Card>

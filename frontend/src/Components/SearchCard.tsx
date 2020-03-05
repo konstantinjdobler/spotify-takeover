@@ -4,7 +4,13 @@ import { API_URL } from "../utils";
 import { routes, PublicUser } from "../sharedTypes";
 
 export default class SearchCard extends React.Component<
-  { activeWishSongUser?: PublicUser; wishSongsLeft: number; permission: boolean; requestServerStateUpdate: () => void },
+  {
+    currentlyPlayingMusic: boolean;
+    activeWishSongUser?: PublicUser;
+    wishSongsLeft: number;
+    permission: boolean;
+    requestServerStateUpdate: () => void;
+  },
   { song: string; artist: string }
 > {
   state = {
@@ -37,16 +43,6 @@ export default class SearchCard extends React.Component<
           </CardContent>
         </Card>
       );
-    if (this.props.activeWishSongUser)
-      return (
-        <Card elevation={0}>
-          <CardContent>
-            <Typography variant="body1" color="textPrimary">
-              {`The currently playing song was requested by ${this.props.activeWishSongUser.name} using this feature. Please wait until it has finished playing.`}
-            </Typography>
-          </CardContent>
-        </Card>
-      );
     if (this.props.wishSongsLeft <= 0)
       return (
         <Card elevation={0}>
@@ -57,6 +53,35 @@ export default class SearchCard extends React.Component<
           </CardContent>
         </Card>
       );
+    if (!this.props.currentlyPlayingMusic)
+      return (
+        <Card elevation={0}>
+          <CardContent>
+            <Typography variant="body1" color="textSecondary">
+              You can play a song on our linked spotify account - please play something nice. This will immediately play
+              the first matched song - specify the artist if the song has a common name.
+            </Typography>
+            <Typography variant="body1" color="textPrimary">
+              {`Unfortunately we are not listening to music right now. Please try again later.`}
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+    if (this.props.activeWishSongUser)
+      return (
+        <Card elevation={0}>
+          <CardContent>
+            <Typography variant="body1" color="textSecondary">
+              You can play a song on our linked spotify account - please play something nice. This will immediately play
+              the first matched song - specify the artist if the song has a common name.
+            </Typography>
+            <Typography variant="body1" color="textPrimary">
+              {`The currently playing song was requested by ${this.props.activeWishSongUser.name} using this feature. Please wait until it has finished playing.`}
+            </Typography>
+          </CardContent>
+        </Card>
+      );
+
     return (
       <Card elevation={0}>
         <CardContent>

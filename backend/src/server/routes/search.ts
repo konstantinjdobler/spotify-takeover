@@ -52,7 +52,11 @@ export function initSongInjection(server: SpotifyTakeoverServer, route: string) 
     if (previousPlayback && previousPlayback.item) {
       setTimeout(async () => {
         const afterTimeoutPlayback = await server.linkedSpotify?.client.getCurrentPlayback();
-        if (afterTimeoutPlayback?.item?.uri && afterTimeoutPlayback?.item?.uri === injectionSong.uri)
+        if (
+          afterTimeoutPlayback?.item?.uri &&
+          afterTimeoutPlayback?.item?.uri === injectionSong.uri &&
+          afterTimeoutPlayback.is_playing
+        )
           setTimeout(
             () =>
               server.linkedSpotify?.client.setCurrentPlayback(

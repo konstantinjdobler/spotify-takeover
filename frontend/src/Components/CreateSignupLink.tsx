@@ -34,9 +34,12 @@ export default class CreateSignupLink extends React.Component<
           <FormControlLabel
             control={
               <Checkbox
-                checked={this.state.linkSpotify}
                 onChange={(e, newValue) =>
-                  this.setState({ linkSpotify: true, liveListen: true, wishSongs: UNLIMITED_SONGS_NUMBER })
+                  this.setState({
+                    linkSpotify: newValue,
+                    liveListen: newValue,
+                    wishSongs: newValue ? UNLIMITED_SONGS_NUMBER : 0,
+                  })
                 }
               />
             }

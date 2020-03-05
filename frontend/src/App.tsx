@@ -195,16 +195,21 @@ class App extends React.Component<{}, AppState> {
                 wishSongsLeft={this.state.wishSongsLeft || 0}
                 permission={this.state.user?.capabilities.wishSongs !== 0}
                 requestServerStateUpdate={this.requestServerStateUpdate}
+                currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
               ></SearchCard>
             </Grid>
           )}
           {this.state.selectedTab === 1 && (
             <Grid item xs={12} sm={6}>
               <LiveListenCard
+                currentUserIslinked={
+                  !!this.state.user?.spotify.id &&
+                  this.state.user?.spotify.id === this.state.linkedSpotifyUser?.spotify.id
+                }
                 slavePermissionLink={this.state.slavePermissionLink}
                 requestServerStateUpdate={this.requestServerStateUpdate}
                 userIsLiveListening={!!this.state.userIsLiveListening}
-                currentlyPlayingMusic={!!this.state.playbackInfo}
+                currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
                 permission={!!this.state.user?.capabilities.liveListen}
               />
             </Grid>
