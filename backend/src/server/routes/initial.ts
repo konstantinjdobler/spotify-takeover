@@ -26,6 +26,9 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
           ? { user: stripPrivateInfoFromUser(server.activeWishedSongInfo.user) }
           : undefined;
         const userIsLiveListening = !!server.liveListen[authenticityToken];
+        const currentlyLiveListening = Object.values(server.liveListen)
+          .map(v => v?.user.name)
+          .filter(v => v !== undefined) as string[];
         const wishSongsLeft =
           authenticatedUser.capabilities.wishSongs -
           (await Persistence.totalSongInjectionsForUser(authenticatedUser.authenticityToken));
@@ -39,6 +42,7 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
           userIsLiveListening,
           activeWishedSongInfo,
           wishSongsLeft,
+          currentlyLiveListening,
         };
         res.status(200).send(response);
         return;

@@ -10,6 +10,10 @@ import {
   AppBar,
   Typography,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
 } from "@material-ui/core";
 import { Alert, Color } from "@material-ui/lab";
 import CreateSignupLink from "./Components/CreateSignupLink";
@@ -39,11 +43,15 @@ type AppState = {
   selectedTab: number;
   wishSongsLeft?: number;
   activeWishedSongInfo?: { user: PublicUser };
+  currentlyLiveListening: string[];
+  openHelpDialog: boolean;
 };
 class App extends React.Component<{}, AppState> {
   state: AppState = {
     loading: true,
     selectedTab: 0,
+    openHelpDialog: false,
+    currentlyLiveListening: [],
   };
 
   signupSuccessfulAction(urlParams: URLSearchParams) {
@@ -129,12 +137,13 @@ class App extends React.Component<{}, AppState> {
         userIsLiveListening: res.userIsLiveListening,
         wishSongsLeft: res.wishSongsLeft,
         activeWishedSongInfo: res.activeWishedSongInfo,
+        currentlyLiveListening: res.currentlyLiveListening,
       });
     }
   }
 
   requestServerStateUpdate = () => {
-    this.initial("");
+    return this.initial("");
   };
 
   loadingIndicator() {
@@ -161,7 +170,12 @@ class App extends React.Component<{}, AppState> {
         <AppBar position="sticky" style={{ width: "100%" }}>
           <Toolbar>
             <Typography variant="h6">Roadtrip Spotify Integration</Typography>
-            <IconButton edge="end" color="inherit" style={{ justifySelf: "flex-end" }}>
+            <IconButton
+              onClick={() => this.setState({ openHelpDialog: true })}
+              edge="end"
+              color="inherit"
+              style={{ justifySelf: "flex-end" }}
+            >
               <HelpOutline />
             </IconButton>
           </Toolbar>
@@ -209,6 +223,7 @@ class App extends React.Component<{}, AppState> {
                 slavePermissionLink={this.state.slavePermissionLink}
                 requestServerStateUpdate={this.requestServerStateUpdate}
                 userIsLiveListening={!!this.state.userIsLiveListening}
+                currentlyLiveListening={this.state.currentlyLiveListening}
                 currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
                 permission={!!this.state.user?.capabilities.liveListen}
               />
@@ -236,6 +251,30 @@ class App extends React.Component<{}, AppState> {
           >
             {this.state.toast}
           </Snackbar>
+          <Dialog open={this.state.openHelpDialog} onClose={() => this.setState({ openHelpDialog: false })}>
+            <DialogTitle>What is this website?</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {
+                  "What do you do on a roadtrip? That's right, you listen to music. We're doing it the modern way via \
+                Spotify and want to share that music with you."
+                }
+                <br />
+                <br />
+
+                {
+                  "You can see what music we're listening to and sync that \
+                music to your own spotify account so that you're always listening to the same music as us."
+                }
+                <br />
+                <br />
+                {
+                  "You can even \
+                make us listen to your music - no matter where you are, you can make us listen to Wonderwall while we're driving down Highway Nr.1 in California. "
+                }
+              </DialogContentText>
+            </DialogContent>
+          </Dialog>
         </Grid>
       </div>
     );

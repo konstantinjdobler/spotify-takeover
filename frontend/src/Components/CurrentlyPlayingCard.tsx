@@ -19,7 +19,7 @@ export default class CurrentRoadtripDevice extends React.Component<
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12}>
               <Typography variant="h5" display="inline">
-                {this.props.playbackInfo?.item?.name || "No music is currently playing"}
+                {this.props.playbackInfo?.item?.name || "We're not playing any music right now."}
               </Typography>
               {this.props.activeWishSongUser && (
                 <Typography variant="subtitle1" display="inline" color="textSecondary">

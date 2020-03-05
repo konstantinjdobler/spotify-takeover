@@ -14,6 +14,7 @@ import {
 } from "@material-ui/core";
 import { API_URL } from "../utils";
 import { routes } from "../sharedTypes";
+import { LoadingButton } from "./LoadingCapableButton";
 
 export default class LiveListenCard extends React.Component<
   {
@@ -22,11 +23,13 @@ export default class LiveListenCard extends React.Component<
     currentlyPlayingMusic: boolean;
     permission: boolean;
     currentUserIslinked: boolean;
+    currentlyLiveListening: string[];
     requestServerStateUpdate: () => void;
   },
-  { dialogOpen: boolean; dialogSliderValue: number }
+  { dialogOpen: boolean; dialogSliderValue: number; loading: boolean }
 > {
   state = {
+    loading: false,
     dialogOpen: false,
     dialogSliderValue: 15,
   };
@@ -35,8 +38,8 @@ export default class LiveListenCard extends React.Component<
       method: "GET",
       credentials: "include",
     });
-    this.setState({ dialogSliderValue: 0 });
-    this.props.requestServerStateUpdate();
+    this.setState({ dialogSliderValue: 15 });
+    await this.props.requestServerStateUpdate();
   };
 
   stopLiveListen = async () => {
@@ -45,24 +48,33 @@ export default class LiveListenCard extends React.Component<
       method: "GET",
       credentials: "include",
     });
-    this.props.requestServerStateUpdate();
+    await this.props.requestServerStateUpdate();
   };
 
-  GrantPermissionsButton = (
+  GrantPermissionsButton = () => (
     <Button variant="outlined" color="primary" href={this.props.slavePermissionLink}>
       Grant permissions
     </Button>
   );
-  StartLiveListenButton = (
+  StartLiveListenButton = () => (
     <Button variant="outlined" color="primary" onClick={() => this.setState({ dialogOpen: true })}>
       Start listening!
     </Button>
   );
 
-  StopLiveListenButton = (
-    <Button variant="outlined" color="primary" onClick={this.stopLiveListen}>
+  StopLiveListenButton = () => (
+    <LoadingButton
+      loading={this.state.loading}
+      variant="outlined"
+      color="primary"
+      onClick={async () => {
+        this.setState({ loading: true });
+        await this.stopLiveListen();
+        this.setState({ loading: false });
+      }}
+    >
       Stop live listening!
-    </Button>
+    </LoadingButton>
   );
 
   marks = [
@@ -102,22 +114,24 @@ export default class LiveListenCard extends React.Component<
         ></Slider>
       </DialogContent>
       <DialogActions>
-        <Button
-          variant="contained"
+        <LoadingButton
+          variant="outlined"
           color="primary"
-          onClick={() => {
-            this.startLiveListen();
-            this.setState({ dialogOpen: false });
+          loading={this.state.loading}
+          onClick={async () => {
+            this.setState({ loading: true });
+            await this.startLiveListen();
+            this.setState({ dialogOpen: false, loading: false });
           }}
         >
           Start listening!
-        </Button>
+        </LoadingButton>
       </DialogActions>
     </Dialog>
   );
 
-  CannotLiveListenButton = (
-    <Button variant="contained" disabled>
+  CannotLiveListenButton = () => (
+    <Button variant="outlined" disabled>
       No music currently playing
     </Button>
   );
@@ -125,14 +139,23 @@ export default class LiveListenCard extends React.Component<
     this.setState({ dialogOpen: false });
   };
 
+  CurrentlyLiveListening = () => {
+    if (!this.props.currentlyLiveListening || this.props.currentlyLiveListening.length === 0) return <></>;
+    return (
+      <Typography variant="body1" color="textPrimary">
+        {`Currently listening: ${this.props.currentlyLiveListening.join(", ")}`}
+      </Typography>
+    );
+  };
+
   AppropriateButton = () =>
     this.props.slavePermissionLink
-      ? this.GrantPermissionsButton
+      ? this.GrantPermissionsButton()
       : this.props.userIsLiveListening
-      ? this.StopLiveListenButton
+      ? this.StopLiveListenButton()
       : this.props.currentlyPlayingMusic
-      ? this.StartLiveListenButton
-      : this.CannotLiveListenButton;
+      ? this.StartLiveListenButton()
+      : this.CannotLiveListenButton();
 
   render() {
     if (!this.props.permission) {
@@ -142,11 +165,12 @@ export default class LiveListenCard extends React.Component<
             <Typography variant="body1" color="textPrimary">
               Unfortunately you can't use this feature.
             </Typography>
+            <this.CurrentlyLiveListening />
           </CardContent>
         </Card>
       );
     }
-    if (!this.props.currentUserIslinked) {
+    if (this.props.currentUserIslinked) {
       return (
         <Card elevation={0}>
           <CardContent>
@@ -157,6 +181,23 @@ export default class LiveListenCard extends React.Component<
               This will magically play every song we are listening to on your spotify account! Don't worry you can
               always stop listening if you get sick of our music...
             </Typography>
+            <this.CurrentlyLiveListening />
+          </CardContent>
+        </Card>
+      );
+    }
+    if (this.props.currentlyLiveListening.length >= 4) {
+      return (
+        <Card elevation={0}>
+          <CardContent>
+            <Typography variant="body1" color="textPrimary">
+              There are too many people listening right now, we don't want the server to explode :( Try again later!
+            </Typography>
+            <Typography variant="body1" color="textSecondary">
+              This will magically play every song we are listening to on your spotify account! Don't worry you can
+              always stop listening if you get sick of our music...
+            </Typography>
+            <this.CurrentlyLiveListening />
           </CardContent>
         </Card>
       );
@@ -168,6 +209,8 @@ export default class LiveListenCard extends React.Component<
             This will magically play every song we are listening to on your spotify account! Don't worry you can always
             stop listening if you get sick of our music...
           </Typography>
+          <this.CurrentlyLiveListening />
+
           {this.props.slavePermissionLink && (
             <Typography variant="body1" color="textPrimary">
               You need to grant us more permissions to do that.

@@ -6,9 +6,10 @@ export type OKInitialRequestResponse = {
   user: PublicUser;
   masterPermissionLink?: string;
   slavePermissionLink?: string;
-  userIsLiveListening?: boolean;
+  userIsLiveListening: boolean;
   activeWishedSongInfo?: { user: PublicUser };
   wishSongsLeft?: number;
+  currentlyLiveListening: string[];
 };
 export type UserCapabilities = {
   linkSpotify: boolean;

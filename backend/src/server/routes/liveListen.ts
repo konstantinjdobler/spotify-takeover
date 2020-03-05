@@ -2,7 +2,7 @@ import SpotifyTakeoverServer from "../SpotifyTakeover";
 import Persistence from "../../wrappers/MongoDB";
 import { SpotifyClient } from "../../wrappers/SpotifyAPI";
 import { clearIntervalAsync, SetIntervalAsyncTimer, setIntervalAsync } from "set-interval-async/dynamic";
-const INTERVAL_CLEARED_INDICATOR = 0;
+const INTERVAL_CLEARED_INDICATOR = -1;
 
 export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
   server.app.get(route, async (req, res) => {
@@ -84,9 +84,11 @@ export async function endLiveListen(
   if (interval.id === INTERVAL_CLEARED_INDICATOR) return;
   await clearIntervalAsync(interval);
   interval.id = INTERVAL_CLEARED_INDICATOR;
+
   const listenerSpotify = new SpotifyClient(server.liveListen[authenticityToken]!.user.slaveRefreshToken!);
   const listenInfo = server.liveListen[authenticityToken];
   server.liveListen[authenticityToken] = undefined;
+
   console.log("Live listen ended");
   await listenerSpotify.setCurrentPlayback(
     listenInfo!.previousPlayback.item?.uri ?? null,
