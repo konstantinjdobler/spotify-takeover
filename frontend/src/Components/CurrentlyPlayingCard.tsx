@@ -19,7 +19,7 @@ export default class CurrentRoadtripDevice extends React.Component<
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12}>
               <Typography variant="h5" display="inline">
-                {this.props.playbackInfo?.item?.name || "We're not playing any music right now."}
+                {this.props.playbackInfo?.item?.name || "We're not playing any music right now"}
               </Typography>
               {this.props.activeWishSongUser && (
                 <Typography variant="subtitle1" display="inline" color="textSecondary">
@@ -31,6 +31,11 @@ export default class CurrentRoadtripDevice extends React.Component<
                   {" (Currently paused)"}
                 </Typography>
               )}
+              {!this.props.playbackInfo?.item?.name && (
+                <Typography variant="subtitle1" color="textSecondary">
+                  Don't worry, we'll make it through this time together
+                </Typography>
+              )}
               <Typography variant="subtitle1" color="textSecondary">
                 {this.props.playbackInfo?.item?.artists.map(artist => artist.name).join(", ")}
               </Typography>
@@ -39,7 +44,7 @@ export default class CurrentRoadtripDevice extends React.Component<
         </CardContent>
         <CardMedia
           style={{ height: 0, width: "100%", paddingTop: "56.25%" }}
-          image={this.props.playbackInfo?.item?.album.images[0].url || require("./unknown_song.jpg")}
+          image={this.props.playbackInfo?.item?.album.images[0].url || require("./alcohol-song.jpg")}
         />
       </Card>
     );

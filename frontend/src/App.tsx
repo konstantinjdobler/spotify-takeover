@@ -264,7 +264,7 @@ class App extends React.Component<{}, AppState> {
 
                 {
                   "You can see what music we're listening to and sync that \
-                music to your own spotify account so that you're always listening to the same music as us."
+                music to your own Spotify account so that you're always listening to the same music as us."
                 }
                 <br />
                 <br />
