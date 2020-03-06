@@ -155,7 +155,7 @@ export default class SearchCard extends React.Component<
           <CardContent>
             <Typography variant="body1" color="textSecondary">
               You can play any song on our linked Spotify account! We'll have to listen, so play something nice. Search
-              by song name - specify the artist if the song has a common name.
+              by song name, artist or both. Select one of the search results - it will start playing immediately!
             </Typography>
             <Typography variant="body1" color="textPrimary">
               {`Unfortunately we are not listening to music right now. Please try again later.`}
@@ -169,7 +169,7 @@ export default class SearchCard extends React.Component<
           <CardContent>
             <Typography variant="body1" color="textSecondary">
               You can play any song on our linked Spotify account! We'll have to listen, so play something nice. Search
-              by song name - specify the artist if the song has a common name.
+              by song name, artist or both. Select one of the search results - it will start playing immediately!
             </Typography>
             <Typography variant="body1" color="textPrimary">
               {`The currently playing song was requested by ${this.props.activeWishSongUser.name} using this feature. Please wait until it has finished playing.`}
@@ -186,7 +186,7 @@ export default class SearchCard extends React.Component<
           </Typography>
           <Typography variant="body1" color="textSecondary">
             You can play any song on our linked Spotify account! We'll have to listen, so play something nice. Search by
-            song name - specify the artist if the song has a common name.
+            song name, artist or both. Select one of the search results - it will start playing immediately!
           </Typography>
           <Box display="flex" alignItems="center">
             <TextField

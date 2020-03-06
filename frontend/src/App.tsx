@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
+  Box,
 } from "@material-ui/core";
 import { Alert, Color } from "@material-ui/lab";
 import CreateSignupLink from "./Components/CreateSignupLink";
@@ -186,19 +187,21 @@ class App extends React.Component<{}, AppState> {
           </Toolbar>
         </AppBar>
         <Grid justify="center" container spacing={1} style={{ padding: "5px", marginTop: "5px" }}>
-          <Grid item xs={12} style={{ maxWidth: "900px" }}>
-            <CurrentRoadtripDevice
-              currentUserIsLinked={
-                !!this.state.user?.spotify.id &&
-                this.state.user?.spotify.id === this.state.linkedSpotifyUser?.spotify.id
-              }
-              requestServerStateUpdate={this.requestServerStateUpdate}
-              activeWishSongUser={this.state.activeWishedSongInfo?.user}
-              playbackInfo={this.state.playbackInfo}
-            />
+          <Grid item xs={12}>
+            <Box style={{ maxWidth: "900px", margin: "0 auto" }}>
+              <CurrentRoadtripDevice
+                currentUserIsLinked={
+                  !!this.state.user?.spotify.id &&
+                  this.state.user?.spotify.id === this.state.linkedSpotifyUser?.spotify.id
+                }
+                requestServerStateUpdate={this.requestServerStateUpdate}
+                activeWishSongUser={this.state.activeWishedSongInfo?.user}
+                playbackInfo={this.state.playbackInfo}
+              />
+            </Box>
           </Grid>
-          <Grid item xs={12} style={{ maxWidth: "1500px" }}>
-            <Paper elevation={0}>
+          <Grid justify="center" container item xs={12}>
+            <Paper elevation={0} style={{ maxWidth: "900px" }}>
               <Tabs
                 value={this.state.selectedTab}
                 onChange={this.handleTabChange}
@@ -213,44 +216,50 @@ class App extends React.Component<{}, AppState> {
             </Paper>
           </Grid>
           {this.state.selectedTab === 2 && (
-            <Grid item xs={12} sm={6}>
-              <SearchCard
-                activeWishSongUser={this.state.activeWishedSongInfo?.user}
-                wishSongsLeft={this.state.wishSongsLeft || 0}
-                permission={this.state.user?.capabilities.wishSongs !== 0}
-                requestServerStateUpdate={this.requestServerStateUpdate}
-                currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
-              ></SearchCard>
+            <Grid justify="center" container item xs={12}>
+              <Box style={{ maxWidth: "900px" }}>
+                <SearchCard
+                  activeWishSongUser={this.state.activeWishedSongInfo?.user}
+                  wishSongsLeft={this.state.wishSongsLeft || 0}
+                  permission={this.state.user?.capabilities.wishSongs !== 0}
+                  requestServerStateUpdate={this.requestServerStateUpdate}
+                  currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
+                ></SearchCard>
+              </Box>
             </Grid>
           )}
           {this.state.selectedTab === 1 && (
-            <Grid item xs={12} sm={6}>
-              <LiveListenCard
-                currentUserIslinked={
-                  !!this.state.user?.spotify.id &&
-                  this.state.user?.spotify.id === this.state.linkedSpotifyUser?.spotify.id
-                }
-                slavePermissionLink={this.state.slavePermissionLink}
-                requestServerStateUpdate={this.requestServerStateUpdate}
-                userIsLiveListening={!!this.state.userIsLiveListening}
-                currentlyLiveListening={this.state.currentlyLiveListening}
-                currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
-                permission={!!this.state.user?.capabilities.liveListen}
-              />
+            <Grid justify="center" container item xs={12}>
+              <Box style={{ maxWidth: "900px" }}>
+                <LiveListenCard
+                  currentUserIslinked={
+                    !!this.state.user?.spotify.id &&
+                    this.state.user?.spotify.id === this.state.linkedSpotifyUser?.spotify.id
+                  }
+                  slavePermissionLink={this.state.slavePermissionLink}
+                  requestServerStateUpdate={this.requestServerStateUpdate}
+                  userIsLiveListening={!!this.state.userIsLiveListening}
+                  currentlyLiveListening={this.state.currentlyLiveListening}
+                  currentlyPlayingMusic={!!this.state.playbackInfo && this.state.playbackInfo.is_playing}
+                  permission={!!this.state.user?.capabilities.liveListen}
+                />
+              </Box>
             </Grid>
           )}
           {this.state.selectedTab === 0 && (
-            <Grid item xs={12} sm={6}>
-              <SetDeviceCard
-                slavePermissionLink={this.state.slavePermissionLink}
-                currentUserIsLinked={
-                  !!this.state.linkedSpotifyUser &&
-                  this.state.linkedSpotifyUser.spotify.id === this.state.user?.spotify.id
-                }
-                permission={!!this.state.user?.capabilities.linkSpotify}
-                currentLinkedUser={this.state.linkedSpotifyUser}
-                requestServerStateUpdate={this.requestServerStateUpdate}
-              />
+            <Grid justify="center" container item xs={12}>
+              <Box style={{ maxWidth: "900px" }}>
+                <SetDeviceCard
+                  slavePermissionLink={this.state.slavePermissionLink}
+                  currentUserIsLinked={
+                    !!this.state.linkedSpotifyUser &&
+                    this.state.linkedSpotifyUser.spotify.id === this.state.user?.spotify.id
+                  }
+                  permission={!!this.state.user?.capabilities.linkSpotify}
+                  currentLinkedUser={this.state.linkedSpotifyUser}
+                  requestServerStateUpdate={this.requestServerStateUpdate}
+                />
+              </Box>
             </Grid>
           )}
           <Snackbar
