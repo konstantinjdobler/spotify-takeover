@@ -7,9 +7,9 @@ type LoadingButtonProps = {
 } & ButtonProps;
 const SpinnerAdornment = () => <CircularProgress color="primary" style={{ marginLeft: 5 }} size={20} />;
 export const LoadingButton = (props: LoadingButtonProps) => {
-  const { children, loading, ...rest } = props;
+  const { children, loading, onClick, ...rest } = props;
   return (
-    <Button disabled={loading} {...rest}>
+    <Button disabled={loading} onClick={onClick} {...rest}>
       {children}
       {loading && <SpinnerAdornment {...rest} />}
     </Button>
@@ -19,12 +19,12 @@ export const LoadingButton = (props: LoadingButtonProps) => {
 type LoadingIconButtonProps = {
   loading: boolean;
 } & IconButtonProps;
-const IconSpinnerAdornment = () => <CircularProgress color="primary" size={25} />;
+const IconSpinnerAdornment = () => <CircularProgress color="primary" size={30} />;
 
 export const LoadingIconButton = (props: LoadingIconButtonProps) => {
-  const { children, loading, ...rest } = props;
+  const { children, loading, onClick, ...rest } = props;
   return (
-    <IconButton disabled={loading} {...rest}>
+    <IconButton disabled={loading} onClick={onClick} {...rest}>
       {!loading && children}
       {loading && <IconSpinnerAdornment {...rest} />}
     </IconButton>

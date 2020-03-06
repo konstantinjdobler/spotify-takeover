@@ -44,6 +44,7 @@ export const actions = {
 };
 
 export const routes = {
+  skipInjectedSong: "/api/skip-song-injection",
   injectSong: "/api/inject-song",
   search: "/api/search",
   stopLiveListen: "/api/stop-live-listen",

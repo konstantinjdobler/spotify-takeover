@@ -160,6 +160,11 @@ class App extends React.Component<{}, AppState> {
     this.setState({ toast: undefined });
   };
 
+  handleTabChange = (ev: any, newVal: number) => {
+    this.requestServerStateUpdate();
+    this.setState({ selectedTab: newVal });
+  };
+
   render() {
     if (this.state.loading) return this.loadingIndicator();
     if (this.state.authenticationLink) return <AuthenticationLink authenticationLink={this.state.authenticationLink} />;
@@ -183,6 +188,11 @@ class App extends React.Component<{}, AppState> {
         <Grid justify="center" container spacing={1} style={{ padding: "5px", marginTop: "5px" }}>
           <Grid item xs={12} style={{ maxWidth: "900px" }}>
             <CurrentRoadtripDevice
+              currentUserIsLinked={
+                !!this.state.user?.spotify.id &&
+                this.state.user?.spotify.id === this.state.linkedSpotifyUser?.spotify.id
+              }
+              requestServerStateUpdate={this.requestServerStateUpdate}
               activeWishSongUser={this.state.activeWishedSongInfo?.user}
               playbackInfo={this.state.playbackInfo}
             />
@@ -191,7 +201,7 @@ class App extends React.Component<{}, AppState> {
             <Paper elevation={0}>
               <Tabs
                 value={this.state.selectedTab}
-                onChange={(ev, newVal) => this.setState({ selectedTab: newVal })}
+                onChange={this.handleTabChange}
                 indicatorColor="primary"
                 textColor="primary"
                 centered

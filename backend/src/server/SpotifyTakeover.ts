@@ -14,7 +14,7 @@ import { initInitialRoute } from "./routes/initial";
 import { initAfterSpotifyAuth } from "./routes/afterSpotifyAuth";
 import { initLiveListen, initStopLiveListen } from "./routes/liveListen";
 import { actions, routes } from "../sharedTypes";
-import { initSearch, initSongInjection } from "./routes/search";
+import { initSearch, initSongInjection, initSkipSongInjection } from "./routes/search";
 require("dotenv").config();
 
 export default class SpotifyTakeoverServer {
@@ -23,6 +23,7 @@ export default class SpotifyTakeoverServer {
   public readonly maxKeepAliveMS = 36_000_000; // 10 h
 
   public activeWishedSongInfo?: {
+    timeout?: NodeJS.Timeout;
     user: FullUser;
     wishedSong: SpotifyApi.TrackObjectFull;
     previousPlayback: SpotifyApi.CurrentlyPlayingObject;
@@ -80,6 +81,7 @@ export default class SpotifyTakeoverServer {
       res.status(200).send(`${this.frontendUrl}?action=${actions.startSignup}&tempCode=${tempCode}`);
     });
     initSongInjection(this, routes.injectSong);
+    initSkipSongInjection(this, routes.skipInjectedSong);
     initSearch(this, routes.search);
     initLiveListen(this, routes.liveListen);
     initStopLiveListen(this, routes.stopLiveListen);

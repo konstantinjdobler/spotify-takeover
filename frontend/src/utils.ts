@@ -8,3 +8,5 @@ export function removeActionFromUrl() {
 
 export const isProd = process.env.NODE_ENV === "production";
 export const API_URL = isProd ? "https://roadtrip-api.konstantin-dobler.de" : "http://localhost:33333";
+
+export const delay = (t: number) => new Promise(resolve => setTimeout(resolve, t));

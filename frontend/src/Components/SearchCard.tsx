@@ -1,8 +1,7 @@
-import React from "react";
+import React, { SyntheticEvent } from "react";
 import {
   Card,
   Typography,
-  CardActions,
   Button,
   CardContent,
   Box,
@@ -20,9 +19,9 @@ import {
   Divider,
   CircularProgress,
 } from "@material-ui/core";
-import { API_URL } from "../utils";
+import { API_URL, delay } from "../utils";
 import { routes, PublicUser } from "../sharedTypes";
-import { LoadingButton, LoadingIconButton } from "./LoadingCapableButton";
+import { LoadingIconButton } from "./LoadingCapableButton";
 import { Search } from "@material-ui/icons";
 
 type SearchCardState = {
@@ -47,7 +46,27 @@ export default class SearchCard extends React.Component<
     song: "",
     artist: "",
   };
-  search = async (song: string, artist?: string) => {
+
+  searchClick = async () => {
+    if (!this.state.song) return;
+    this.setState({ loading: true });
+    await this.searchRequest(this.state.song, this.state.artist);
+    this.setState({ loading: false });
+  };
+
+  catchEnter = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.key === "Enter") {
+      this.searchClick();
+      ev.preventDefault();
+    }
+  };
+  handleArtistChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ artist: ev.target.value });
+  };
+  handleSongChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ song: ev.target.value });
+  };
+  searchRequest = async (song: string, artist?: string) => {
     let query = `?song=${song}` + (artist ? `&artist=${artist}` : "");
     const response = await fetch(`${API_URL}${routes.search}${query}`, {
       method: "GET",
@@ -64,11 +83,12 @@ export default class SearchCard extends React.Component<
       method: "GET",
       credentials: "include",
     });
-    await this.props.requestServerStateUpdate();
+    await delay(300);
+    return this.props.requestServerStateUpdate();
   };
 
   trackListItem = (track: SpotifyApi.TrackObjectFull) => (
-    <>
+    <Box key={track.uri}>
       <ListItem
         button
         dense
@@ -89,7 +109,7 @@ export default class SearchCard extends React.Component<
         </ListItemSecondaryAction>
       </ListItem>
       <Divider variant="fullWidth" component="li" />
-    </>
+    </Box>
   );
 
   SelectionDialog = () => (
@@ -171,27 +191,24 @@ export default class SearchCard extends React.Component<
           <Box display="flex" alignItems="center">
             <TextField
               value={this.state.song}
-              onChange={ev => this.setState({ song: ev.target.value })}
+              onKeyDown={this.catchEnter}
+              onChange={this.handleSongChange}
               label="Song"
               required
             />
 
             <TextField
               value={this.state.artist}
-              onChange={ev => this.setState({ artist: ev.target.value })}
+              onKeyDown={this.catchEnter}
+              onChange={this.handleArtistChange}
               label="Artist"
-              required={false}
               style={{ marginLeft: "5px", width: "30%" }}
             />
             <LoadingIconButton
               color="primary"
               loading={this.state.loading}
               style={{ marginLeft: "5px", marginTop: "15px", padding: "5px" }}
-              onClick={async () => {
-                this.setState({ loading: true });
-                await this.search(this.state.song, this.state.artist);
-                this.setState({ loading: false });
-              }}
+              onClick={this.searchClick}
             >
               <Search fontSize="large" />
             </LoadingIconButton>

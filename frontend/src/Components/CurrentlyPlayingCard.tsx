@@ -1,23 +1,33 @@
 import React from "react";
-import { Typography, CardContent, Card, Grid, CardMedia } from "@material-ui/core";
+import { Typography, CardContent, Card, Grid, CardMedia, IconButton } from "@material-ui/core";
 
-import { PublicUser } from "../sharedTypes";
-import { PlayArrow } from "@material-ui/icons";
-
+import { PublicUser, routes } from "../sharedTypes";
+import { PlayArrow, SkipNext } from "@material-ui/icons";
+import { API_URL, delay } from "../utils";
+import { LoadingIconButton } from "./LoadingCapableButton";
 export default class CurrentRoadtripDevice extends React.Component<
   {
+    currentUserIsLinked: boolean;
     activeWishSongUser?: PublicUser;
     playbackInfo?: SpotifyApi.CurrentlyPlayingObject;
     slavePermissionLink?: string;
+    requestServerStateUpdate: () => Promise<void>;
   },
-  {}
+  { loadingSkip: boolean }
 > {
+  state = { loadingSkip: false };
+  skipInjectSong = async () => {
+    await fetch(API_URL + routes.skipInjectedSong, { credentials: "include" });
+    await delay(500);
+    return this.props.requestServerStateUpdate();
+  };
   render() {
+    const canSkipActiveInjectedSong = this.props.activeWishSongUser && this.props.currentUserIsLinked;
     return (
       <Card elevation={1}>
         <CardContent>
           <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12}>
+            <Grid item xs={canSkipActiveInjectedSong ? 10 : 12}>
               <Typography variant="h5" display="inline">
                 {this.props.playbackInfo?.item?.name || "We're not playing any music right now"}
               </Typography>
@@ -40,6 +50,20 @@ export default class CurrentRoadtripDevice extends React.Component<
                 {this.props.playbackInfo?.item?.artists.map(artist => artist.name).join(", ")}
               </Typography>
             </Grid>
+            {canSkipActiveInjectedSong && (
+              <Grid item xs={2}>
+                <LoadingIconButton
+                  loading={this.state.loadingSkip}
+                  onClick={async () => {
+                    this.setState({ loadingSkip: true });
+                    await this.skipInjectSong();
+                    this.setState({ loadingSkip: false });
+                  }}
+                >
+                  <SkipNext fontSize="large" />
+                </LoadingIconButton>
+              </Grid>
+            )}
           </Grid>
         </CardContent>
         <CardMedia
