@@ -23,6 +23,7 @@ export default class SpotifyTakeoverServer {
   public readonly maxKeepAliveMS = 36_000_000; // 10 h
 
   public activeWishedSongInfo?: {
+    timestamp: number;
     timeout?: NodeJS.Timeout;
     user: FullUser;
     wishedSong: SpotifyApi.TrackObjectFull;

@@ -39,6 +39,7 @@ export function initUnlinkSpotify(server: SpotifyTakeoverServer, route: string) 
       endLiveListen(server, liveListenerAuthenticityToken, liveListenerInfo.interval);
     });
     if (server.activeWishedSongInfo?.timeout) clearTimeout(server.activeWishedSongInfo.timeout);
+    server.activeWishedSongInfo = undefined;
 
     res.status(200).send({ ok: true });
   });

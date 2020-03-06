@@ -65,7 +65,7 @@ export function initSongInjection(server: SpotifyTakeoverServer, route: string) 
         const injectedSongIsStillPlaying =
           !!afterTimeoutPlayback.item &&
           afterTimeoutPlayback.item.uri === injectionSong.uri &&
-          afterTimeoutPlayback.is_playing;
+          afterTimeoutPlayback.progress_ms;
         if (injectedSongIsStillPlaying) {
           await delay(injectionSong.duration_ms - afterTimeoutPlayback.progress_ms!);
           await server.linkedSpotify.client.setCurrentPlayback(
@@ -79,7 +79,13 @@ export function initSongInjection(server: SpotifyTakeoverServer, route: string) 
     }
     await server.linkedSpotify.client.setCurrentPlayback(injectionSong.uri);
     await Persistence.addSongInjection(authenticatedUser, injectionSong.uri);
-    server.activeWishedSongInfo = { previousPlayback, user: authenticatedUser, wishedSong: injectionSong, timeout };
+    server.activeWishedSongInfo = {
+      previousPlayback,
+      user: authenticatedUser,
+      wishedSong: injectionSong,
+      timeout,
+      timestamp: Date.now(),
+    };
     res.status(200).send({ ok: true });
   });
 }
@@ -102,6 +108,7 @@ export function initSkipSongInjection(server: SpotifyTakeoverServer, route: stri
       return res.status(200).send({ ok: "Paused playback" });
     }
     if (server.activeWishedSongInfo.timeout) clearTimeout(server.activeWishedSongInfo.timeout);
+
     server.linkedSpotify.client.setCurrentPlayback(
       previousPlayback.item.uri,
       previousPlayback.progress_ms,

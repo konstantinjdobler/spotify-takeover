@@ -83,7 +83,7 @@ export default class SearchCard extends React.Component<
       method: "GET",
       credentials: "include",
     });
-    await delay(300);
+    setTimeout(this.props.requestServerStateUpdate, 2000);
     return this.props.requestServerStateUpdate();
   };
 

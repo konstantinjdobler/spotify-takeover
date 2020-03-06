@@ -20,13 +20,18 @@ export function initInitialRoute(server: SpotifyTakeoverServer, route: string) {
           ? stripPrivateInfoFromUser(server.linkedSpotify!.user)
           : undefined;
         const playback = await server.linkedSpotify?.client.getCurrentPlayback();
-        if (server.activeWishedSongInfo?.wishedSong.uri !== playback?.item?.uri) {
+        if (
+          server.activeWishedSongInfo &&
+          server.activeWishedSongInfo.timestamp < Date.now() - 10_000 &&
+          server.activeWishedSongInfo.wishedSong.uri !== playback?.item?.uri
+        ) {
           console.log("removing active song wish", server.activeWishedSongInfo?.wishedSong.name, playback?.item?.name);
           server.activeWishedSongInfo = undefined;
         }
-        const activeWishedSongInfo = server.activeWishedSongInfo
-          ? { user: stripPrivateInfoFromUser(server.activeWishedSongInfo.user) }
-          : undefined;
+        const activeWishedSongInfo =
+          server.activeWishedSongInfo && server.activeWishedSongInfo.wishedSong.uri === playback?.item?.uri
+            ? { user: stripPrivateInfoFromUser(server.activeWishedSongInfo.user) }
+            : undefined;
         const userIsLiveListening = !!server.liveListen[authenticityToken];
         const currentlyLiveListening = Object.values(server.liveListen)
           .map(v => v?.user.name)

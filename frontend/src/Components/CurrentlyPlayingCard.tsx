@@ -19,6 +19,7 @@ export default class CurrentRoadtripDevice extends React.Component<
   skipInjectSong = async () => {
     await fetch(API_URL + routes.skipInjectedSong, { credentials: "include" });
     await delay(500);
+    setTimeout(this.props.requestServerStateUpdate, 2000);
     return this.props.requestServerStateUpdate();
   };
   render() {
