@@ -16,11 +16,11 @@ export function initSearch(server: SpotifyTakeoverServer, route: string) {
     }
     const song = req.query.song as string | undefined;
     const artist = req.query.artist as string | undefined;
-    if (!song) {
-      res.status(400).send({ error: "No song" });
+    if (!song && !artist) {
+      res.status(400).send({ error: "No song nor artist" });
       return;
     }
-    const searchResult = await SpotifyClient.with(authenticatedUser.refreshToken).search(song, artist);
+    const searchResult = await SpotifyClient.with(authenticatedUser.refreshToken).search({ song, artist });
 
     res.status(200).send({ tracks: searchResult.body.tracks?.items });
   });

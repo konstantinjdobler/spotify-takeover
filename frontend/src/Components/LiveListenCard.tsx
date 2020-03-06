@@ -186,7 +186,7 @@ export default class LiveListenCard extends React.Component<
         </Card>
       );
     }
-    if (this.props.currentlyLiveListening.length >= 4) {
+    if (this.props.currentlyLiveListening.length >= 4 && !this.props.userIsLiveListening) {
       return (
         <Card elevation={0}>
           <CardContent>

@@ -73,13 +73,14 @@ export class SpotifyClient {
       });
   }
 
-  async search(song: string, artist?: string) {
+  async search(query: { song?: string; artist?: string }) {
     await this.refreshAccessToken();
-    let query = "track:" + song;
-    if (artist) query += " artist:" + artist;
-    console.log(query);
-    // const query = [artist, song].join(" ");
-    return this.engine.searchTracks(query, { limit: 5 });
+    let queryParts: string[] = [];
+    if (query.song) queryParts.push("track:" + query.song);
+    if (query.artist) queryParts.push("artist:" + query.artist);
+    if (queryParts.length === 0) throw Error("empty query");
+
+    return this.engine.searchTracks(queryParts.join(" "), { limit: 15 });
   }
   async setCurrentPlayback(
     song: TrackURI | null,

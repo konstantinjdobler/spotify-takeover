@@ -48,7 +48,7 @@ export default class SearchCard extends React.Component<
   };
 
   searchClick = async () => {
-    if (!this.state.song) return;
+    if (!this.state.song && !this.state.artist) return;
     this.setState({ loading: true });
     await this.searchRequest(this.state.song, this.state.artist);
     this.setState({ loading: false });
@@ -113,7 +113,7 @@ export default class SearchCard extends React.Component<
   );
 
   SelectionDialog = () => (
-    <Dialog open={!!this.state.searchResults}>
+    <Dialog open={!!this.state.searchResults} onClose={() => this.setState({ searchResults: undefined })}>
       <DialogTitle>Choose one of the results</DialogTitle>
       <DialogContent>
         <List>
@@ -194,7 +194,6 @@ export default class SearchCard extends React.Component<
               onKeyDown={this.catchEnter}
               onChange={this.handleSongChange}
               label="Song"
-              required
             />
 
             <TextField
