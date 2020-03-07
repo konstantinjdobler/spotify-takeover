@@ -187,7 +187,7 @@ class App extends React.Component<{}, AppState> {
     if (this.state.signupError) return <SignupErrorCard />;
     return (
       <div>
-        <AppBar position="sticky" style={{ width: "100%" }}>
+        <AppBar position="sticky">
           <Toolbar>
             <Typography variant="h6">Roadtrip Spotify Integration</Typography>
             <IconButton
@@ -200,7 +200,7 @@ class App extends React.Component<{}, AppState> {
             </IconButton>
           </Toolbar>
         </AppBar>
-        <Grid justify="center" container spacing={1} style={{ padding: "5px", marginTop: "5px" }}>
+        <Grid justify="center" container style={{ padding: "5px", marginTop: "5px" }}>
           <Grid item xs={12}>
             <Box style={{ maxWidth: "900px", margin: "0 auto" }}>
               <CurrentRoadtripDevice
