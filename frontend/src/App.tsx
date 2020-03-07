@@ -48,6 +48,7 @@ type AppState = {
   openHelpDialog: boolean;
 };
 class App extends React.Component<{}, AppState> {
+  lastServerStatePoll: number = Date.now();
   state: AppState = {
     loading: true,
     selectedTab: 0,
@@ -95,6 +96,12 @@ class App extends React.Component<{}, AppState> {
     [actions.signupError]: useless => {},
   };
 
+  pollLowPriority = () => {
+    if (Date.now() < this.lastServerStatePoll + 10_000) return;
+    console.log("Polling debounced");
+    return this.requestServerStateUpdate();
+  };
+
   async componentDidMount() {
     const urlParams = new URLSearchParams(window.location.search);
     const action = urlParams.get("action");
@@ -113,6 +120,14 @@ class App extends React.Component<{}, AppState> {
     }
     await this.initial(initialRequestModifier);
     this.setState({ loading: false });
+    document.addEventListener("mousemove", () => {
+      console.log("mouse");
+      this.pollLowPriority();
+    });
+    document.addEventListener("touchmove", () => {
+      console.log("touch");
+      this.pollLowPriority();
+    });
   }
 
   async initial(requestModifer: string) {
@@ -144,6 +159,7 @@ class App extends React.Component<{}, AppState> {
   }
 
   requestServerStateUpdate = () => {
+    this.lastServerStatePoll = Date.now();
     return this.initial("");
   };
 
@@ -162,7 +178,7 @@ class App extends React.Component<{}, AppState> {
   };
 
   handleTabChange = (ev: any, newVal: number) => {
-    this.requestServerStateUpdate();
+    this.pollLowPriority();
     this.setState({ selectedTab: newVal });
   };
 
