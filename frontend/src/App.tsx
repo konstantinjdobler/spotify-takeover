@@ -121,11 +121,9 @@ class App extends React.Component<{}, AppState> {
     await this.initial(initialRequestModifier);
     this.setState({ loading: false });
     document.addEventListener("mousemove", () => {
-      console.log("mouse");
       this.pollLowPriority();
     });
     document.addEventListener("touchmove", () => {
-      console.log("touch");
       this.pollLowPriority();
     });
   }
