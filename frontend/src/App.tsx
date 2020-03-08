@@ -19,7 +19,14 @@ import {
 import { Alert, Color } from "@material-ui/lab";
 import CreateSignupLink from "./Components/CreateSignupLink";
 import CurrentRoadtripDevice from "./Components/CurrentlyPlayingCard";
-import { removeActionFromUrl, isProd, API_URL } from "./utils";
+import {
+  removeActionFromUrl,
+  isProd,
+  API_URL,
+  getVisibilityEvent,
+  getPrefix,
+  getVisibilityStateProperty,
+} from "./utils";
 import AuthenticationLink from "./Components/AuthenticationPage";
 import SetDeviceCard from "./Components/SetDeviceCard";
 import SearchCard from "./Components/SearchCard";
@@ -49,6 +56,8 @@ type AppState = {
 };
 class App extends React.Component<{}, AppState> {
   lastServerStatePoll: number = Date.now();
+  pollInterval: NodeJS.Timeout | null = null;
+  songEndTimeout: NodeJS.Timeout | null = null;
   state: AppState = {
     loading: true,
     selectedTab: 0,
@@ -120,11 +129,18 @@ class App extends React.Component<{}, AppState> {
     }
     await this.initial(initialRequestModifier);
     this.setState({ loading: false });
-    document.addEventListener("mousemove", () => {
-      this.pollLowPriority();
-    });
-    document.addEventListener("touchmove", () => {
-      this.pollLowPriority();
+    const prefix = getPrefix();
+    this.pollInterval = setInterval(this.pollLowPriority, 11_000);
+    document.addEventListener(getVisibilityEvent(prefix), () => {
+      if (((document as any)[getVisibilityStateProperty(prefix)] as VisibilityState) === "visible") {
+        this.pollLowPriority();
+        this.pollInterval = setInterval(this.pollLowPriority, 11_000);
+      } else {
+        if (this.pollInterval) {
+          clearInterval(this.pollInterval);
+          this.pollInterval = null;
+        }
+      }
     });
   }
 
@@ -141,7 +157,7 @@ class App extends React.Component<{}, AppState> {
     if (authRequired(res)) {
       this.setState({ authenticationLink: res.authRequired });
     } else if (isOK(res)) {
-      this.setState({
+      await this.setState({
         authenticationLink: undefined,
         user: res.user,
         masterPermissionLink: res.masterPermissionLink,
@@ -158,7 +174,18 @@ class App extends React.Component<{}, AppState> {
 
   requestServerStateUpdate = () => {
     this.lastServerStatePoll = Date.now();
-    return this.initial("");
+    return this.initial("").then(() => {
+      if (this.songEndTimeout) {
+        clearTimeout(this.songEndTimeout);
+        this.songEndTimeout = null;
+      }
+      if (this.state.playbackInfo?.is_playing && this.state.playbackInfo.item) {
+        this.songEndTimeout = setTimeout(
+          this.requestServerStateUpdate,
+          this.state.playbackInfo.item.duration_ms - this.state.playbackInfo.progress_ms! + 100,
+        );
+      }
+    });
   };
 
   loadingIndicator() {
