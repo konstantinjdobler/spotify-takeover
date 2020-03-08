@@ -242,7 +242,7 @@ class App extends React.Component<{}, AppState> {
             </Box>
           </Grid>
           <Grid justify="center" container item xs={12}>
-            <Paper elevation={0} style={{ maxWidth: "900px" }}>
+            <Paper elevation={0} style={{ maxWidth: "900px", marginTop: "5px" }}>
               <Tabs
                 value={this.state.selectedTab}
                 onChange={this.handleTabChange}
