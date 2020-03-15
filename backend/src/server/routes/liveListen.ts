@@ -28,7 +28,7 @@ export function initLiveListen(server: SpotifyTakeoverServer, route: string) {
 
     const liveListenDuration = parseFloat(req.query.duration);
     console.log("Starting live listen", liveListenDuration);
-    const slaveSpotify = new SpotifyClient(authenticatedUser.refreshToken);
+    const slaveSpotify = new SpotifyClient(authenticatedUser.slaveRefreshToken);
 
     const currentSlavePlayback = await slaveSpotify.getCurrentPlayback();
 
